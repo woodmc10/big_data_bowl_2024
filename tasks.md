@@ -13,13 +13,16 @@
 
 
 10/27
-- pick a tool for code management
-    * cookiecutter?
-    * poetry?
-- pick a tool for data management
-    * dvc?
-- create git repo
+- ~~pick a tool for code management~~
+    * ~~cookiecutter~~
+- ~~pick a tool for data management~~
+    * ~~dvc~~
+        - ~~can't figure out how to get it installed. Giving up, probably don't need for this.~~
+- ~~create git repo~~
 - explore kaggle interface
+- EDA
+    * How many missed tackels in the dataset?
+        - How many on run plays, how many on pass plays?
 - try to come up with a direction/path
     * **missed tackle probability?**
         - offensive forced missed tackles (PFF stat)
@@ -39,3 +42,5 @@
     * PFF forced missed tackles stat - how do they determine and track this?
     * research on missed tackles?
 
+Data Adjustments
+- switch all plays to run from left to right
