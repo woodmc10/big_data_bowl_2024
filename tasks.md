@@ -61,20 +61,24 @@
             * ~~get a count of the number of missed tackle plays that don't have a first contact event~~
                 - in week 1: 6 plays
 - research
-    * watch videos of missed tackles on YouTube, then try to find in data
+    * ~~watch videos of missed tackles on YouTube, then try to find in data~~
 - Find a method to simplify problem
     * need a way to get to 1 frame per play that can be labeled as missed tackle
     * options
         - frame when defender is within a certain distance (3 yards? 1 yard? etc?)
-            * find the minimum distance between ball carrier and player who misses tackle for each play
-                - plot the distribution
+            * ~~find the minimum distance between ball carrier and player who misses tackle for each play~~
+                - ~~plot the distribution~~
 - Weekend Reading List
     * Kaggle discussion board (starter resources and references)
     * Mentors links shared on call
 
+11/10
+- ~~Investigate tackler minimum distance~~
+- practice PCA
+- practice XGBoost
+
 TODO: Data Adjustments
 - switch all plays to run from left to right
-
 
 # Convos with Zach
 ## 11/2
