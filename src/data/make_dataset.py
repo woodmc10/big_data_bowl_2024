@@ -2,7 +2,7 @@
 import click
 import logging
 from pathlib import Path
-from dotenv import find_dotenv, load_dotenv
+# from dotenv import find_dotenv, load_dotenv
 
 import pandas as pd
 from pathlib import Path
@@ -29,7 +29,7 @@ def main(input_directory, output_filepath):
     ball_carrier_dist_df = player_dist_to_ball_carrier(plays_df, tracking_df)
     tackler_dist_df = tackler_distance(tackle_simple_df, ball_carrier_dist_df)
 
-    tackler_dist_df.to_csv(output_filepath)
+    tackler_dist_df.to_csv(output_filepath, index=False)
 
 def import_support_files(input_directory):
     games_df = pd.read_csv(f'{input_directory}/games.csv')
@@ -54,6 +54,6 @@ if __name__ == '__main__':
 
     # find .env automagically by walking up directories until it's found, then
     # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
+    # load_dotenv(find_dotenv())
 
     main()
