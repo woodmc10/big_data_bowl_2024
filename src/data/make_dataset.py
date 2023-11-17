@@ -45,6 +45,30 @@ def import_tracking_files(input_directory):
         )
     return tracking_df
 
+def standardize_field(df):
+    """
+    Convert coordinates and orientation such that the offensive team is
+    always going to the right.
+    
+    Direction is not used and, therefore, not updated.
+    """
+    FIELD_LENGTH = 120
+    FIELD_WIDTH = 160 / 3
+
+    HALF_ROTATION = 180
+    flipped = df.assign(
+        x=FIELD_LENGTH - df.x,
+        y=FIELD_WIDTH - df.y,
+        
+        # Can ignore that values will exceed 360 because they will
+        # be converted to sine and cosine values.
+        o=(df.o + HALF_ROTATION),
+    )
+
+    # Reminder: the where method in pandas goes against intuition and
+    # replaces columns for which the condition is False.
+    return df.where(df.playDirection == "right", flipped)
+
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
