@@ -77,6 +77,82 @@
 - practice PCA
 - practice XGBoost
 
+11/17
+- Theorize Components of Tackle
+    * Important parts of a tackle:
+        - Reaching the same place - can’t make a tackle from looking at a ball carrier, must make contact
+            * speed, direction, angle, persuit
+            * how far away is the tackler from the ball carrier? (distance)
+            * if both ball carrier and tackler maintain their direction and speed where will their paths cross? (distance to contact point)
+            * speed and direction changes
+                - juking, cutting, throwing on the breaks as techniques for avoiding tackles
+                - defenders reaction time, ability to adjust to changes
+        - Force at contact
+            * when the tackler and the defender meet the force applied through the two players will be impacted by each one's speed, direction, size, etc
+                - height and weight differential
+                - angle and speed differential
+                    * same speed, same angle/direction will impart much less force than same speed opposite angle/direction
+                    * defenders will not have much luck making good tackles if they are stationary at the point of contact
+        - Form (rugby, all of these are from a mostly head on collision type attack angle)
+            * get low 
+                - contact through the hips of the ball carrier
+                - cheek to cheek (face to butt)
+                - pick a side (don't put your head in the middle of the ball carrier's body)
+                - chop your feet just before contact (the decrease in speed of your lower body and momentum of your upper body helps drop the height of your head and shoulders to improve contact position without losing all your momentum)
+            * wrap arms around the ball carrier
+                - front arm around mid section prevents the ball carrier from off loading to a support player
+                - back arm wraps around back of leg, picking up that leg and driving prevents the ball carrier from continuing to drive their legs and make forward progress
+            * drive through the ball carrier
+                - make contact with the ball carrier as if you want to drive them backward into someone 1 yard behind them
+        - Access
+            * difficult to tackle the ball carrier if there is a blocker between the defender and the ball carrier
+        - 
+
+11/24
+- Single Frame Metrics
+    - make contact metrics
+        - tackler distance to ball carrier
+        - tackler distance to contact point
+            - using the direction of each player, find the point where they will meet, calculate the distance between the tackler and that point
+        - tackler time to contact
+            - see above calculation
+            - use tackler speed to determine time to cover the distance
+        - ball carrier time to contact
+            - see above, but ball carrier
+        - difference in time to contact
+            - find the difference between tackler time to contact and ball carrier time to contact
+        - will make contact yes/no
+            - set a limit for the difference in time to contact point
+            - example: assume reaching the same point 2 seconds appart will result in the tackler not making contact with the ball carrier
+                - need to determine how to set the max time difference
+    - force metrics
+        - ~~tackler force~~
+            - total (mass * acceleration)
+            - north-south (trigonometry with force and direction)
+            - east_west 
+            - in direction of contact point (this is the same as the total because the contact point is defined to be in the direction the ball carrier and tackle are traveling)
+        - ~~ball carrier force~~
+            - total, north-south, east-west
+        - force difference
+            - total, north-south, east-west
+            - adjust total based on angle of contact
+                - reduce the force metric based on the angle of tackler and ball carrier contact
+                    - possible calculation: determine the force of the tackler in the direction the ball carrier is moving, compare that to the full force of the ball carrier
+    - direction and angle
+        - difference in direction of movement and orientation
+            - normalize using trigonometry?
+ - other metrics that feel outside of the ability to evaluate from a single frame and may be better if aggregating over mulitple frames (will define later)
+    - make contact metrics
+        - ball carrier shiftiness
+        - tackler adjustments
+    - force metrics
+        - conservation of momentum
+- Code metrics
+- Create dataset for 1-yard distance
+- Code left/right normalization
+                
+
+
 TODO: Data Adjustments
 - switch all plays to run from left to right
 
