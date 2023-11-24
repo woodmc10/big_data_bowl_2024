@@ -9,6 +9,7 @@ from pathlib import Path
 from src.data.tackler_info import (
     simplify_tackles_df, player_dist_to_ball_carrier, tackler_distance
 )
+from src.data.physics import calculate_angles, physics_calculations
 
 
 @click.command()
@@ -24,12 +25,25 @@ def main(input_directory, output_filepath):
     games_df, plays_df, players_df, tackles_df = import_support_files(input_directory)
     tracking_df = import_tracking_files(input_directory)
 
-    # tackler distance conversion
-    tackle_simple_df = simplify_tackles_df(tackles_df)
-    ball_carrier_dist_df = player_dist_to_ball_carrier(plays_df, tracking_df)
-    tackler_dist_df = tackler_distance(tackle_simple_df, ball_carrier_dist_df)
+    # normalize left/right field direction
+    standard_tracking_df = standardize_field(tracking_df)
 
-    tackler_dist_df.to_csv(output_filepath, index=False)
+    # merge weight into tracking dataframe
+    weight_df = standard_tracking_df.merge(players_df[['nflId', 'weight']], on='nflId')
+
+    # add force, momentum, and angles
+    angle_tracking_df = calculate_angles(weight_df)
+    force_tracking_df = physics_calculations(angle_tracking_df, "force")
+    physics_tracking_df = physics_calculations(force_tracking_df, "momentum")
+
+    physics_tracking_df.to_csv(output_filepath, index=False)
+
+    # # tackler distance conversion
+    # tackle_simple_df = simplify_tackles_df(tackles_df)
+    # ball_carrier_dist_df = player_dist_to_ball_carrier(plays_df, physics_tracking_df)
+    # tackler_dist_df = tackler_distance(tackle_simple_df, ball_carrier_dist_df)
+
+    # tackler_dist_df.to_csv(output_filepath, index=False)
 
 def import_support_files(input_directory):
     games_df = pd.read_csv(f'{input_directory}/games.csv')
@@ -63,6 +77,7 @@ def standardize_field(df):
         # Can ignore that values will exceed 360 because they will
         # be converted to sine and cosine values.
         o=(df.o + HALF_ROTATION),
+        dir = (df.dir + HALF_ROTATION)
     )
 
     # Reminder: the where method in pandas goes against intuition and

@@ -1,6 +1,12 @@
 from scipy.spatial.distance import euclidean
 import pandas as pd
 
+matching_frame_columns = ['gameId', 'playId', 'frameId']
+player_details_columns = ['nflId', 'displayName', 'jerseyNumber', 'club']
+play_info_columns = ['time', 'playDirection', 'event']
+tracking_info_columns = ['x', 'y', 's', 'a', 'dis', 'o', 'dir']
+drop_columns = ['displayName', 'jerseyNumber', 'playDirection']
+
 def simplify_tackles_df(tackles_df):
     # assign the tackle Id for each boolean column
     tackle_ids = tackles_df.copy()
@@ -23,17 +29,21 @@ def simplify_tackles_df(tackles_df):
 def player_dist_to_ball_carrier(plays_df, tracking_df):
     # get ball carrier tracking details for each frame
     ball_carrier_tracking_df = plays_df[['gameId', 'playId', 'ballCarrierId']].merge(
-                                    tracking_df[['gameId', 'playId', 'nflId', 'frameId',
-                                                 'club', 'playDirection', 'x', 'y',
-                                                 's', 'a', 'dis', 'o', 'dir']],
+                                    tracking_df
+                                                # [['gameId', 'playId', 'nflId', 'frameId',
+                                                #  'club', 'playDirection', 'x', 'y',
+                                                #  's', 'a', 'dis', 'o', 'dir']]
+                                                ,
                                     left_on=['gameId', 'playId', 'ballCarrierId'],
                                     right_on=['gameId', 'playId', 'nflId']
                         )
     # add ball carrier position to every row of tracking data
     ball_carrier_dist = ball_carrier_tracking_df.merge(
-                                tracking_df[['gameId', 'playId', 'nflId', 'frameId',
-                                             'club', 'playDirection', 'x', 'y',
-                                             's', 'a', 'dis', 'o', 'dir']],
+                                tracking_df
+                                            # [['gameId', 'playId', 'nflId', 'frameId',
+                                            #  'club', 'playDirection', 'x', 'y',
+                                            #  's', 'a', 'dis', 'o', 'dir']]
+                                             ,
                                 on=['gameId', 'playId', 'frameId'],
                                 suffixes=['_ball_carrier', None]
                         )
@@ -49,10 +59,11 @@ def tackler_distance(tackle_simple_df, ball_carrier_dist_df, dist='min'):
     if dist == 'min':
         ball_carrier_min_dist = ball_carrier_dist_df.loc[
             ball_carrier_dist_df.groupby(["gameId", "playId", "nflId"])["distance"].idxmin()
-        ][['gameId', 'playId', 'nflId', 'frameId', 'club', 'playDirection', 'x', 'y',
-           's', 'a', 'dis', 'o', 'dir', 'club_ball_carrier', 'distance',
-           'x_ball_carrier', 'y_ball_carrier', 's_ball_carrier', 'a_ball_carrier',
-           'dis_ball_carrier', 'o_ball_carrier', 'dir_ball_carrier']]
+        ]
+        #     [['gameId', 'playId', 'nflId', 'frameId', 'club', 'playDirection', 'x', 'y',
+        #    's', 'a', 'dis', 'o', 'dir', 'club_ball_carrier', 'distance',
+        #    'x_ball_carrier', 'y_ball_carrier', 's_ball_carrier', 'a_ball_carrier',
+        #    'dis_ball_carrier', 'o_ball_carrier', 'dir_ball_carrier']]
     else:
         #TODO: add code for finding the first frame where a defender gets within a 
         # certain distance from the ball carrier
