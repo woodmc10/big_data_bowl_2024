@@ -5,6 +5,7 @@ def calculate_angles(df):
     df['dir_cos'] = np.cos(np.radians(df['dir']))
     df['dir_sin'] = np.sin(np.radians(df['dir']))
     df['dir_tan'] = np.tan(np.radians(df['dir']))
+    df['slope'] = np.tan(np.radians(90 - df['dir']))
     return df
 
 def physics_calculations(df, metric_type):
@@ -21,19 +22,21 @@ def physics_calculations(df, metric_type):
     return df
 
 def find_contact_point(df):
-    df['contact_x'] = ((df['y']/(df['dir_tan'] * df['x']) - 
-                        df['y_ball_carrier']/(df['dir_tan_ball_carrier'] * 
-                                              df['x_ball_carrier'])
-                        ) / (df['dir_tan_ball_carrier'] - df['dir_tan'])
+    df['x_contact'] = ((df['y'] - (df['slope'] * df['x']) -
+                        (df['y_ball_carrier'] - (df['slope_ball_carrier'] *
+                                              df['x_ball_carrier']))
+                        ) / (df['slope_ball_carrier'] - df['slope'])
                       )
-    df['contact_y'] = (df['dir_tan_ball_carrier'] * df['contact_x'] +
-                       (df['y_ball_carrier'] / 
-                            (df['dir_tan_ball_carrier'] * df['x_ball_carrier'])
+    df['x_contact'] = np.where(np.isnan(df['x_contact']), df['x'], df['x_contact'])
+    df['y_contact'] = (df['slope_ball_carrier'] * df['x_contact'] +
+                       (df['y_ball_carrier'] -
+                            (df['slope_ball_carrier'] * df['x_ball_carrier'])
                        )
                       )
-
-    df['contact_y_check'] = (df['dir_tan'] * df['contact_x'] +
-                                df['y'] / (df['dir_tan'] * df['x'])
+    df['y_contact'] = np.where(np.isnan(df['y_contact']), df['y'], df['y_contact'])
+    df['contact_y_check'] = (df['slope'] * df['x_contact'] +
+                             (df['y'] - (df['slope'] * df['x'])
+                             )
                             )
     # pd.testing.assert_series_equal(df['contact_y'], 
     #                                (df['dir_tan'] * df['contact_x'] +
@@ -53,4 +56,10 @@ def metric_diffs(df, metric_type):
         # force will be larger than ball carrier force if tackler is moving in opposite direction
     df[f'{metric_type}_x_diff'] = df[f'{metric_type}_x_ball_carrier'] - df[f'{metric_type}_x']
     df[f'{metric_type}_y_diff'] = df[f'{metric_type}_y_ball_carrier'] - df[f'{metric_type}_y']
+    return df
+
+def time_to_contact(df):
+    df['tackler_time_to_contact'] = df['tackler_to_contact_dist'] / df['s']
+    df['ball_carrier_time_to_contact'] = df['ball_carrier_to_contact_dist'] / df['s_ball_carrier']
+    df['diff_time_to_contact'] = df['tackler_time_to_contact'] - df['ball_carrier_time_to_contact']
     return df

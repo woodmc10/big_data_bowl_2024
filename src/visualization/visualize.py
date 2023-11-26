@@ -265,3 +265,49 @@ def animate_play(tracking_df, play_df, players, gameId, playId):
                 )
 
     return fig
+
+import matplotlib.pyplot as plt
+ 
+# starter code for plotting lines for showing tackler - ball carrier contact point
+def plot_line(slope, point):
+    """
+    This function plots a line on a graph based on the given slope and point.
+    
+    Parameters:
+    slope (float): The slope of the line
+    point (tuple): The coordinates of a point on the line (x, y)
+    
+    Returns:
+    None
+    """
+    try:
+        # Check if the slope is a number
+        if not isinstance(slope, (int, float)):
+            raise TypeError("The slope must be a number")
+        
+        # Check if the point is a tuple with two elements
+        if not isinstance(point, tuple) or len(point) != 2:
+            raise TypeError("The point must be a tuple with two elements")
+        
+        # Extract the coordinates from the point
+        x, y = point
+        
+        # Generate x-values for the line
+        x_values = range(0, 120)
+        
+        # Calculate y-values for the line using the slope-intercept form
+        y_values = [slope * (x_val - x) + y for x_val in x_values]
+        
+        # Plot the line
+        plt.plot(x_values, y_values)
+        plt.scatter(x, y)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.title('Line Plot')
+        plt.grid(True)
+        plt.axis([0, 120, 0, 53])
+        plt.show()
+        
+    except TypeError as e:
+        # Log the error
+        print(f"Error: {e}")

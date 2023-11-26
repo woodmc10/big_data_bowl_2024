@@ -6,7 +6,7 @@ player_details_columns = ['nflId', 'displayName', 'club']
 play_info_columns = ['time', 'event']
 tracking_info_columns = ['x', 'y', 's', 'a', 'dis', 'o', 'dir']
 drop_columns = ['jerseyNumber', 'playDirection']
-angle_columns = ['dir_cos', 'dir_sin', 'dir_tan']
+angle_columns = ['dir_cos', 'dir_sin', 'dir_tan', 'slope']
 physics_columns = ['force', 'force_x', 'force_y', 'momentum', 'momentum_x',
                    'momentum_y']
 ball_carrier_columns = ['nflId_ball_carrier',
@@ -15,6 +15,7 @@ ball_carrier_columns = ['nflId_ball_carrier',
                         'a_ball_carrier', 'dis_ball_carrier', 'o_ball_carrier',
                         'dir_ball_carrier', 'dir_cos_ball_carrier',
                         'dir_sin_ball_carrier', 'dir_tan_ball_carrier',
+                        'slope_ball_carrier',
                         'force_ball_carrier', 'force_x_ball_carrier',
                         'force_y_ball_carrier', 'momentum_ball_carrier',
                         'momentum_x_ball_carrier', 'momentum_y_ball_carrier']
@@ -72,6 +73,15 @@ def player_dist_to_ball_carrier(ball_carrier_dist):
                     , axis=1)
     return ball_carrier_dist
 
+def dist_calc(df, first='', second='_ball_carrier', name='tackler_to_ball_carrier_dist'):
+    # calculate distance from each player to ball carrier
+    df['distance'] = df.apply(
+                    lambda row: euclidean((row[f'x{first}'], row[f'y{first}']), 
+                                          (row[f'x{second}'], row[f'y{second}']))
+                    , axis=1)
+    df.rename({'distance': name}, axis=1, inplace=True)
+    return df
+
 def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
     if dist == 'min':
         ball_carrier_min_dist = ball_carrier_dist_df.loc[
@@ -79,9 +89,8 @@ def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
         ][matching_frame_columns + player_details_columns + tracking_info_columns +
           angle_columns + physics_columns + ball_carrier_columns +['distance']]
     else:
-        #TODO: add code for finding the first frame where a defender gets within a 
-        # certain distance from the ball carrier
-        ball_carrier_dist_limit_df = ball_carrier_min_dist[ball_carrier_dist_df['distance'] < dist]
+        #assert dist is numeric
+        ball_carrier_dist_limit_df = ball_carrier_dist_df[ball_carrier_dist_df['distance'] < dist]
         ball_carrier_min_dist = ball_carrier_dist_limit_df.loc[
             ball_carrier_dist_limit_df.groupby(["gameId", "playId", "nflId"])["frameId"].idxmin()
         ][matching_frame_columns + player_details_columns + tracking_info_columns +
