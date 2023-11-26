@@ -7,9 +7,13 @@ from pathlib import Path
 import pandas as pd
 from pathlib import Path
 from src.data.tackler_info import (
-    simplify_tackles_df, player_dist_to_ball_carrier, tackler_distance
+    simplify_tackles_df, join_ball_carrier_tracking,
+    player_dist_to_ball_carrier, tackler_distance_frame
 )
-from src.data.physics import calculate_angles, physics_calculations
+from src.data.physics import (
+    calculate_angles, physics_calculations, find_contact_point,
+    metric_diffs
+)
 
 
 @click.command()
@@ -36,14 +40,23 @@ def main(input_directory, output_filepath):
     force_tracking_df = physics_calculations(angle_tracking_df, "force")
     physics_tracking_df = physics_calculations(force_tracking_df, "momentum")
 
-    physics_tracking_df.to_csv(output_filepath, index=False)
+    # add ball carrier details to every row
+    tackle_simple_df = simplify_tackles_df(tackles_df)
+    ball_carrier_join_df = join_ball_carrier_tracking(plays_df, physics_tracking_df)
 
-    # # tackler distance conversion
-    # tackle_simple_df = simplify_tackles_df(tackles_df)
-    # ball_carrier_dist_df = player_dist_to_ball_carrier(plays_df, physics_tracking_df)
-    # tackler_dist_df = tackler_distance(tackle_simple_df, ball_carrier_dist_df)
+    # calculate distances and select single frame
+    ball_carrier_dist_df = player_dist_to_ball_carrier(ball_carrier_join_df)
+    tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df)
 
-    # tackler_dist_df.to_csv(output_filepath, index=False)
+    # calculate metrics differences
+    force_diff_df = metric_diffs(tackler_dist_df, 'force')
+    momentum_force_diff_df = metric_diffs(force_diff_df, 'momentum')
+
+    # calculate contact point
+    contact_point_df = find_contact_point(momentum_force_diff_df)
+
+    comparison_df = contact_point_df
+    comparison_df.to_csv(output_filepath, index=False)
 
 def import_support_files(input_directory):
     games_df = pd.read_csv(f'{input_directory}/games.csv')
