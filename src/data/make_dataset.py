@@ -46,7 +46,7 @@ def main(input_directory, output_filepath):
 
     # calculate distances and select single frame
     ball_carrier_dist_df = dist_calc(ball_carrier_join_df)
-    tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df)
+    tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist=1)
 
     # calculate metrics differences
     metrics_df = metric_diffs(tackler_dist_df, 'force')
