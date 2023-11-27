@@ -40,6 +40,7 @@ def find_contact_point(df):
                              (df['y'] - (df['slope'] * df['x'])
                              )
                             )
+    print()
     # pd.testing.assert_series_equal(df['contact_y'], 
     #                                (df['dir_tan'] * df['contact_x'] +
     #                                     df['y'] / (df['dir_tan'] * df['x'])

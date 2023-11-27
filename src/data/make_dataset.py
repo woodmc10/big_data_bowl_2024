@@ -54,10 +54,10 @@ def main(input_directory, output_filepath):
     metric_diffs(metrics_df, 'momentum')
 
     # calculate contact point and player distance/time
-    # find_contact_point(metrics_df)
-    # dist_calc(metrics_df, first='', second='_contact', name='tackler_to_contact_dist')
-    # dist_calc(metrics_df, first='_ball_carrier', second='_contact', name='ball_carrier_to_contact_dist')
-    # time_to_contact(metrics_df)
+    find_contact_point(metrics_df)
+    dist_calc(metrics_df, first='', second='_contact', name='tackler_to_contact_dist')
+    dist_calc(metrics_df, first='_ball_carrier', second='_contact', name='ball_carrier_to_contact_dist')
+    time_to_contact(metrics_df)
 
     metrics_df.to_csv(output_filepath, index=False)
 
