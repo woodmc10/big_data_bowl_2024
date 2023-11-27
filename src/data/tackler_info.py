@@ -73,7 +73,7 @@ def player_dist_to_ball_carrier(ball_carrier_dist):
                     , axis=1)
     return ball_carrier_dist
 
-def dist_calc(df, first='', second='_ball_carrier', name='tackler_to_ball_carrier_dist'):
+def dist_calc(df, first='', second='_ball_carrier', name='distance'):
     # calculate distance from each player to ball carrier
     df['distance'] = df.apply(
                     lambda row: euclidean((row[f'x{first}'], row[f'y{first}']), 

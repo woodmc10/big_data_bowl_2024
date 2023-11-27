@@ -47,16 +47,17 @@ def main(input_directory, output_filepath):
     # calculate distances and select single frame
     ball_carrier_dist_df = dist_calc(ball_carrier_join_df)
     tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist=1)
+        # this distance argument should be a command line argument
 
     # calculate metrics differences
     metrics_df = metric_diffs(tackler_dist_df, 'force')
     metric_diffs(metrics_df, 'momentum')
 
     # calculate contact point and player distance/time
-    find_contact_point(metrics_df)
-    dist_calc(metrics_df, first='', second='_contact', name='tackler_to_contact_dist')
-    dist_calc(metrics_df, first='_ball_carrier', second='_contact', name='ball_carrier_to_contact_dist')
-    time_to_contact(metrics_df)
+    # find_contact_point(metrics_df)
+    # dist_calc(metrics_df, first='', second='_contact', name='tackler_to_contact_dist')
+    # dist_calc(metrics_df, first='_ball_carrier', second='_contact', name='ball_carrier_to_contact_dist')
+    # time_to_contact(metrics_df)
 
     metrics_df.to_csv(output_filepath, index=False)
 

@@ -28,12 +28,14 @@ def find_contact_point(df):
                         ) / (df['slope_ball_carrier'] - df['slope'])
                       )
     df['x_contact'] = np.where(np.isnan(df['x_contact']), df['x'], df['x_contact'])
+    df['x_contact'] = np.where(np.isinf(df['x_contact']), df['x'], df['x_contact'])
     df['y_contact'] = (df['slope_ball_carrier'] * df['x_contact'] +
                        (df['y_ball_carrier'] -
                             (df['slope_ball_carrier'] * df['x_ball_carrier'])
                        )
                       )
     df['y_contact'] = np.where(np.isnan(df['y_contact']), df['y'], df['y_contact'])
+    df['y_contact'] = np.where(np.isinf(df['y_contact']), df['y'], df['y_contact'])
     df['contact_y_check'] = (df['slope'] * df['x_contact'] +
                              (df['y'] - (df['slope'] * df['x'])
                              )
