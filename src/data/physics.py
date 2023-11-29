@@ -6,6 +6,7 @@ def calculate_angles(df):
     df['dir_sin'] = np.sin(np.radians(df['dir']))
     df['dir_tan'] = np.tan(np.radians(df['dir']))
     df['slope'] = np.tan(np.radians(90 - df['dir']))
+    df['o_sin'] = np.sin(np.radians(df['o']))
     return df
 
 def physics_calculations(df, metric_type):
@@ -40,13 +41,10 @@ def find_contact_point(df):
                              (df['y'] - (df['slope'] * df['x'])
                              )
                             )
-    print()
-    # pd.testing.assert_series_equal(df['contact_y'], 
-    #                                (df['dir_tan'] * df['contact_x'] +
-    #                                     df['y'] / (df['dir_tan'] * df['x'])
-    #                                 ),
-    #                                check_names=False
-    #                               )
+    df['contact_y_check'] = np.where(np.isnan(df['contact_y_check']), df['y'], df['contact_y_check'])
+    df['contact_y_check'] = np.where(np.isinf(df['contact_y_check']), df['y'], df['contact_y_check'])
+    # pd.testing.assert_series_equal(df['y_contact'], df['contact_y_check'])
+
     return df
 
 def metric_diffs(df, metric_type):
@@ -65,4 +63,8 @@ def time_to_contact(df):
     df['tackler_time_to_contact'] = df['tackler_to_contact_dist'] / df['s']
     df['ball_carrier_time_to_contact'] = df['ball_carrier_to_contact_dist'] / df['s_ball_carrier']
     df['diff_time_to_contact'] = df['tackler_time_to_contact'] - df['ball_carrier_time_to_contact']
+    return df
+
+def out_of_phase(df):
+    df['in_phase'] = abs(df['dir_sin'] - df['o_sin'])
     return df

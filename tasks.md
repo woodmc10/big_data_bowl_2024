@@ -111,15 +111,15 @@
 11/24
 - Single Frame Metrics
     - make contact metrics
-        - tackler distance to ball carrier
-        - tackler distance to contact point
+        - ~~tackler distance to ball carrier~~
+        - ~~tackler distance to contact point~~
             - using the direction of each player, find the point where they will meet, calculate the distance between the tackler and that point
-        - tackler time to contact
+        - ~~tackler time to contact~~
             - see above calculation
             - use tackler speed to determine time to cover the distance
-        - ball carrier time to contact
+        - ~~ball carrier time to contact~~
             - see above, but ball carrier
-        - difference in time to contact
+        - ~~difference in time to contact~~
             - find the difference between tackler time to contact and ball carrier time to contact
         - will make contact yes/no
             - set a limit for the difference in time to contact point
@@ -133,14 +133,14 @@
             - in direction of contact point (this is the same as the total because the contact point is defined to be in the direction the ball carrier and tackle are traveling)
         - ~~ball carrier force~~
             - total, north-south, east-west
-        - force difference
+        - ~~force difference~~
             - total, north-south, east-west
-            - adjust total based on angle of contact
+            - **adjust total based on angle of contact**
                 - reduce the force metric based on the angle of tackler and ball carrier contact
                     - possible calculation: determine the force of the tackler in the direction the ball carrier is moving, compare that to the full force of the ball carrier
-    - direction and angle
+    - ~~direction and angle~~
         - difference in direction of movement and orientation
-            - normalize using trigonometry?
+            - normalize using sine
  - other metrics that feel outside of the ability to evaluate from a single frame and may be better if aggregating over mulitple frames (will define later)
     - make contact metrics
         - ball carrier shiftiness
@@ -148,8 +148,8 @@
     - force metrics
         - conservation of momentum
 - Code metrics
-- Create dataset for 1-yard distance
-- Code left/right normalization
+- ~~Create dataset for 1-yard distance~~
+- ~~Code left/right normalization~~
                 
 
 

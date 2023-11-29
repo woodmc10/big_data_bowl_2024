@@ -12,7 +12,7 @@ from src.data.tackler_info import (
 )
 from src.data.physics import (
     calculate_angles, physics_calculations, find_contact_point,
-    metric_diffs, time_to_contact
+    metric_diffs, time_to_contact, out_of_phase
 )
 
 
@@ -36,9 +36,10 @@ def main(input_directory, output_filepath):
     weight_df = standard_tracking_df.merge(players_df[['nflId', 'weight']], on='nflId')
 
     # add force, momentum, and angles
-    angle_tracking_df = calculate_angles(weight_df)
-    force_tracking_df = physics_calculations(angle_tracking_df, "force")
-    physics_tracking_df = physics_calculations(force_tracking_df, "momentum")
+    physics_tracking_df = calculate_angles(weight_df)
+    physics_calculations(physics_tracking_df, "force")
+    physics_calculations(physics_tracking_df, "momentum")
+    out_of_phase(physics_tracking_df)
 
     # add ball carrier details to every row
     tackle_simple_df = simplify_tackles_df(tackles_df)
