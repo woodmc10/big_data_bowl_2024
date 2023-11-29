@@ -68,3 +68,11 @@ def time_to_contact(df):
 def out_of_phase(df):
     df['in_phase'] = abs(df['dir_sin'] - df['o_sin'])
     return df
+
+def contact_force(df):
+    df['contact_angle'] = np.arctan(abs((df['slope'] - df['slope_ball_carrier'])
+                                        / (1 + df['slope'] * df['slope_ball_carrier'])))
+    df['contact_angle_cos'] = np.cos(df['contact_angle'])
+    df['contact_angle_force'] = df['force'] * df['contact_angle_cos']
+    df['contact_angle_force_diff'] = df['contact_angle_force'] - df['force_ball_carrier']
+    return df

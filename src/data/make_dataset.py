@@ -12,7 +12,7 @@ from src.data.tackler_info import (
 )
 from src.data.physics import (
     calculate_angles, physics_calculations, find_contact_point,
-    metric_diffs, time_to_contact, out_of_phase
+    metric_diffs, time_to_contact, out_of_phase, contact_force
 )
 
 
@@ -57,8 +57,10 @@ def main(input_directory, output_filepath):
     # calculate contact point and player distance/time
     find_contact_point(metrics_df)
     dist_calc(metrics_df, first='', second='_contact', name='tackler_to_contact_dist')
-    dist_calc(metrics_df, first='_ball_carrier', second='_contact', name='ball_carrier_to_contact_dist')
+    dist_calc(metrics_df, first='_ball_carrier', second='_contact', 
+              name='ball_carrier_to_contact_dist')
     time_to_contact(metrics_df)
+    contact_force(metrics_df)
 
     metrics_df.to_csv(output_filepath, index=False)
 
