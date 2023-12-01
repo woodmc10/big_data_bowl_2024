@@ -21,12 +21,16 @@ ball_carrier_columns = ['nflId_ball_carrier',
                         'momentum_x_ball_carrier', 'momentum_y_ball_carrier']
 
 def simplify_tackles_df(tackles_df):
+    # remove plays where the same player makes and misses a tackle
+    tackles_df['sum'] = tackles_df['tackle'] + tackles_df['assist'] + tackles_df['pff_missedTackle']
+    tackles_df_limit = tackles_df[tackles_df['sum'] == 1]
+    
     # assign the tackle Id for each boolean column
-    tackle_ids = tackles_df.copy()
+    tackle_ids = tackles_df_limit.copy()
     tackle_ids[
         ["tackle", "assist", "forcedFumble", "pff_missedTackle"]
-    ] = tackles_df[["tackle", "assist", "forcedFumble", "pff_missedTackle"]].multiply(
-        tackles_df["nflId"],
+    ] = tackles_df_limit[["tackle", "assist", "forcedFumble", "pff_missedTackle"]].multiply(
+        tackles_df_limit["nflId"],
         axis="index"
     )
 
@@ -83,23 +87,24 @@ def dist_calc(df, first='', second='_ball_carrier', name='distance'):
     return df
 
 def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
+    #TODO: "tackler_to_ball_carrier_dist" column name is an argument assigned in the 
+    # dist_calc function. It is bad practice to hard code it in this function. Fix.
     if dist == 'min':
         ball_carrier_min_dist = ball_carrier_dist_df.loc[
-            ball_carrier_dist_df.groupby(["gameId", "playId", "nflId"])["distance"].idxmin()
+            ball_carrier_dist_df.groupby(["gameId", "playId", "nflId"])["tackler_to_ball_carrier_dist"].idxmin()
         ][matching_frame_columns + player_details_columns + tracking_info_columns +
-          angle_columns + physics_columns + ball_carrier_columns +['distance']]
+          angle_columns + physics_columns + ball_carrier_columns +['tackler_to_ball_carrier_dist']]
     else:
         #assert dist is numeric
-        ball_carrier_dist_limit_df = ball_carrier_dist_df[ball_carrier_dist_df['distance'] < dist]
+        ball_carrier_dist_limit_df = ball_carrier_dist_df[ball_carrier_dist_df['tackler_to_ball_carrier_dist'] < dist]
         ball_carrier_min_dist = ball_carrier_dist_limit_df.loc[
             ball_carrier_dist_limit_df.groupby(["gameId", "playId", "nflId"])["frameId"].idxmin()
         ][matching_frame_columns + player_details_columns + tracking_info_columns +
-          angle_columns + physics_columns + ball_carrier_columns +['distance']]
+          angle_columns + physics_columns + ball_carrier_columns +['tackler_to_ball_carrier_dist']]
     tackles_dist = tackle_simple_df.merge(
                         ball_carrier_min_dist,
                         on=['gameId', 'playId', 'nflId'],
                         how='right')
-    tackles_dist.rename(columns={'distance': 'min_dist'}, inplace=True)
     tackles_dist['event'].fillna('None', inplace=True)
     return tackles_dist
 

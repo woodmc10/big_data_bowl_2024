@@ -156,9 +156,11 @@
     * ~~compare to number of plays in dataset~~
     * ~~spot check on play from 3 different weeks~~
 - Create final dataset
-    * reduce to only running plays
-    * reduce to only defensive players
-    * remove all frames after tackle frame
+    * ~~reduce to only running plays~~
+    * ~~reduce to only defensive players~~
+    * ~~remove all frames after tackle frame~~
+    * remove plays where the same player misses and makes a tackle
+        - or assign these as missed tackles
 - Plot metrics
     * bar plots of each numeric metric
     * other plots to try

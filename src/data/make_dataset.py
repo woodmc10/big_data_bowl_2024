@@ -125,7 +125,8 @@ def reduce_tracking_data(tracking_df, plays_df, play_type='run'):
 
     return reduced_tracking_df
 
-def defenders_only(df):
+def defenders_only(tracking_df):
+    df = tracking_df.copy()
     defenders_df = df[df['club'] != df['club_ball_carrier']]
     return defenders_df
 
