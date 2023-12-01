@@ -172,6 +172,7 @@
         - search the internet for other options
         - get Lisa's ideas
 - Create outline of final notebook
+- investigate rows where check_y_contact is not matching
 
 
 

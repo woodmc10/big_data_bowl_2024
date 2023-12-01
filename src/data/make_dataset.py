@@ -29,8 +29,11 @@ def main(input_directory, output_filepath):
     games_df, plays_df, players_df, tackles_df = import_support_files(input_directory)
     tracking_df = import_tracking_files(input_directory)
 
+    # reduce tracking data to run plays with frames before the tackle
+    reduced_tracking_df = reduce_tracking_data(tracking_df, plays_df, play_type='run')
+
     # normalize left/right field direction
-    standard_tracking_df = standardize_field(tracking_df)
+    standard_tracking_df = standardize_field(reduced_tracking_df)
 
     # merge weight into tracking dataframe
     weight_df = standard_tracking_df.merge(players_df[['nflId', 'weight']], on='nflId')
@@ -45,8 +48,11 @@ def main(input_directory, output_filepath):
     tackle_simple_df = simplify_tackles_df(tackles_df)
     ball_carrier_join_df = join_ball_carrier_tracking(plays_df, physics_tracking_df)
 
+    # reduce data to only defensive players
+    defenders_tracking_df = defenders_only(ball_carrier_join_df)
+
     # calculate distances and select single frame
-    ball_carrier_dist_df = dist_calc(ball_carrier_join_df)
+    ball_carrier_dist_df = dist_calc(defenders_tracking_df, name='tackler_to_ball_carrier_dist')
     tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist=1)
         # this distance argument should be a command line argument
 
@@ -102,6 +108,26 @@ def standardize_field(df):
     # Reminder: the where method in pandas goes against intuition and
     # replaces columns for which the condition is False.
     return df.where(df.playDirection == "right", flipped)
+
+def reduce_tracking_data(tracking_df, plays_df, play_type='run'):
+    # exclude frames after the tackle
+    tackle_frame_df = tracking_df[tracking_df['event'] == 'tackle'][['gameId', 'playId', 'frameId']].drop_duplicates(keep='first')
+    tackle_frame_df.rename(columns={'frameId': 'tackle_frame'}, inplace=True)
+    temp_tracking_df = tracking_df.merge(tackle_frame_df, on=['gameId', 'playId'])
+    tracking_to_tackle_df = temp_tracking_df[temp_tracking_df['tackle_frame'] > temp_tracking_df['frameId']]
+
+    # reduce dataframe to selected play type
+    if play_type == 'run':
+        run_plays_df = plays_df[plays_df[('passResult')].isnull()]
+        reduced_tracking_df = run_plays_df[['gameId', 'playId']].merge(tracking_to_tackle_df, on=['gameId', 'playId'])
+    else:
+        raise ValueError("Only run plays supported")
+
+    return reduced_tracking_df
+
+def defenders_only(df):
+    defenders_df = df[df['club'] != df['club_ball_carrier']]
+    return defenders_df
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
