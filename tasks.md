@@ -151,10 +151,30 @@
 - ~~Create dataset for 1-yard distance~~
 - ~~Code left/right normalization~~
                 
+12/1
+- Check dataframe creation
+    * ~~compare to number of plays in dataset~~
+    * ~~spot check on play from 3 different weeks~~
+- Create final dataset
+    * reduce to only running plays
+    * reduce to only defensive players
+    * remove all frames after tackle frame
+- Plot metrics
+    * bar plots of each numeric metric
+    * other plots to try
+        - violin plots
+        - something creative with angle plots
+        - search internet for other options
+        - get Lisa's ideas
+    * two dimensional plots
+        - create 2-3 scatter plots with two dimensions
+        - create 2-3 violin plots with a categorical dimension
+        - search the internet for other options
+        - get Lisa's ideas
+- Create outline of final notebook
 
 
-TODO: Data Adjustments
-- switch all plays to run from left to right
+
 
 # Convos with Zach
 ## 11/2

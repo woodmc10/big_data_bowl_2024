@@ -8,7 +8,7 @@ tracking_info_columns = ['x', 'y', 's', 'a', 'dis', 'o', 'dir']
 drop_columns = ['jerseyNumber', 'playDirection']
 angle_columns = ['dir_cos', 'dir_sin', 'dir_tan', 'slope']
 physics_columns = ['force', 'force_x', 'force_y', 'momentum', 'momentum_x',
-                   'momentum_y']
+                   'momentum_y', 'in_phase']
 ball_carrier_columns = ['nflId_ball_carrier',
                         'displayName_ball_carrier', 'club_ball_carrier', 
                         'x_ball_carrier', 'y_ball_carrier', 's_ball_carrier',
