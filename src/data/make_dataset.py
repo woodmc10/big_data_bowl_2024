@@ -63,7 +63,7 @@ def main(input_directory, output_filepath):
     # calculate contact point and player distance/time
     find_contact_point(metrics_df)
     dist_calc(metrics_df, first='', second='_contact', name='tackler_to_contact_dist')
-    dist_calc(metrics_df, first='_ball_carrier', second='_contact', 
+    dist_calc(metrics_df, first='_ball_carrier', second='_contact',
               name='ball_carrier_to_contact_dist')
     time_to_contact(metrics_df)
     contact_force(metrics_df)
@@ -94,22 +94,27 @@ def standardize_field(df):
     FIELD_LENGTH = 120
     FIELD_WIDTH = 160 / 3
 
-    HALF_ROTATION = 180
     flipped = df.assign(
         x=FIELD_LENGTH - df.x,
         y=FIELD_WIDTH - df.y,
         
-        # Can ignore that values will exceed 360 because they will
-        # be converted to sine and cosine values.
-        o=(df.o + HALF_ROTATION),
-        dir = (df.dir + HALF_ROTATION)
+        o=lambda x: half_rotation(x.o),
+        dir = lambda x: half_rotation(x.dir)
     )
 
     # Reminder: the where method in pandas goes against intuition and
     # replaces columns for which the condition is False.
     return df.where(df.playDirection == "right", flipped)
 
-def reduce_tracking_data(tracking_df, plays_df, play_type='run'):
+def half_rotation(angle):
+    new_angle = angle + 180
+    if new_angle > 360:
+        return new_angle - 360
+    return new_angle
+
+
+def reduce_tracking_data(df, plays_df, play_type='run'):
+    tracking_df = df.copy()
     # exclude frames after the tackle
     tackle_frame_df = tracking_df[tracking_df['event'] == 'tackle'][['gameId', 'playId', 'frameId']].drop_duplicates(keep='first')
     tackle_frame_df.rename(columns={'frameId': 'tackle_frame'}, inplace=True)
@@ -118,8 +123,17 @@ def reduce_tracking_data(tracking_df, plays_df, play_type='run'):
 
     # reduce dataframe to selected play type
     if play_type == 'run':
-        run_plays_df = plays_df[plays_df[('passResult')].isnull()]
+        run_plays_df = plays_df[plays_df['passResult'].isnull()]
         reduced_tracking_df = run_plays_df[['gameId', 'playId']].merge(tracking_to_tackle_df, on=['gameId', 'playId'])
+    # elif play_type == 'pass':
+        # before evaluating pass plays, reduce the tracking data to only frames after the catch
+        pass_df = tracking_to_tackle_df.copy()
+        pass_caught_df = pass_df[pass_df.event == 'pass_outcome_caught']
+        pass_caught_df.rename(columns={'frameId': 'catch_frame'}, inplace=True)
+        temp_tracking_df_pass = pass_df.merge(pass_caught_df, on=['gameId', 'playId'])
+        pass_caught_to_tackle_df = temp_tracking_df_pass[temp_tracking_df_pass['catch_frame'] < temp_tracking_df_pass['frameId']]
+        pass_plays_df = plays_df[plays_df['passResult'] == "C"]
+        reduced_tracking_df = pass_plays_df[['gameId', 'playId']].merge(pass_caught_to_tackle_df, on=['gameId', 'playId'])
     else:
         raise ValueError("Only run plays supported")
 

@@ -18,7 +18,8 @@ ball_carrier_columns = ['nflId_ball_carrier',
                         'slope_ball_carrier',
                         'force_ball_carrier', 'force_x_ball_carrier',
                         'force_y_ball_carrier', 'momentum_ball_carrier',
-                        'momentum_x_ball_carrier', 'momentum_y_ball_carrier']
+                        'momentum_x_ball_carrier', 'momentum_y_ball_carrier',
+                        'in_phase_ball_carrier']
 
 def simplify_tackles_df(tackles_df):
     # remove plays where the same player makes and misses a tackle
