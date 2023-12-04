@@ -159,22 +159,26 @@
     * ~~reduce to only running plays~~
     * ~~reduce to only defensive players~~
     * ~~remove all frames after tackle frame~~
-    * remove plays where the same player misses and makes a tackle
-        - or assign these as missed tackles
+    * ~~remove plays where the same player misses and makes a tackle~~
 - Plot metrics
-    * bar plots of each numeric metric
+    * ~~bar plots of each numeric metric~~
     * other plots to try
-        - violin plots
+        - ~~violin plots~~
         - something creative with angle plots
         - search internet for other options
         - get Lisa's ideas
     * two dimensional plots
-        - create 2-3 scatter plots with two dimensions
-        - create 2-3 violin plots with a categorical dimension
+        - ~~create 2-3 scatter plots with two dimensions~~
         - search the internet for other options
         - get Lisa's ideas
 - Create outline of final notebook
 - investigate rows where check_y_contact is not matching
+- metrics updates
+    - what to do with outliers in the make contact metrics?
+    - ~~reduce the angles above 360 by subtracting 360~~
+    - ~~make a scatter plot of momentum_x and momentum_x_ball_carrier~~
+        * ~~try to figure out difference in momentum_x_add and momentum_x_diff~~
+            - The values in the scatter plot look more quadratic than linear. Looking at the values it makes sense why the addition shows a different distribution than the subtraction.
 
 
 
