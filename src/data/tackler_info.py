@@ -109,6 +109,39 @@ def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
     tackles_dist['event'].fillna('None', inplace=True)
     return tackles_dist
 
+def contact_behind(df):
+    df['bc_arrow_dist'] = df.apply(
+                        lambda row: euclidean((row['x_ball_carrier'], row['y_ball_carrier']), 
+                                            (row['x_ball_carrier'] + row['dir_sin_ball_carrier'], 
+                                            row['y_ball_carrier'] + row['dir_cos_ball_carrier']))
+                        , axis=1)
+
+    df['contact_bc_arrow_dist'] = df.apply(
+                        lambda row: euclidean((row['x_contact'], row['y_contact']), 
+                                            (row['x_ball_carrier'] + row['dir_sin_ball_carrier'], 
+                                            row['y_ball_carrier'] + row['dir_cos_ball_carrier']))
+                        , axis=1)
+
+    df['behind_ball_carrier'] = ((df['bc_arrow_dist'] < df['contact_bc_arrow_dist']) &
+                                 (df['ball_carrier_to_contact_dist'] < df['contact_bc_arrow_dist']))
+
+    df['tackler_arrow_dist'] = df.apply(
+                        lambda row: euclidean((row['x'], row['y']), 
+                                            (row['x'] + row['dir_sin'],
+                                             row['y'] + row['dir_cos']))
+                        , axis=1)
+
+    df['contact_t_arrow_dist'] = df.apply(
+                        lambda row: euclidean((row['x_contact'], row['y_contact']), 
+                                            (row['x'] + row['dir_sin'],
+                                             row['y'] + row['dir_cos']))
+                        , axis=1)
+
+    df['behind_tackler'] = ((df['tackler_arrow_dist'] < df['contact_t_arrow_dist']) &
+                            (df['tackler_to_contact_dist'] < df['contact_t_arrow_dist']))
+
+    df['behind_player'] = df['behind_ball_carrier'] | df['behind_tackler']
+
 def dist_group(row):
     dist_range = 'unknown'
     if row.min_dist < 0.5:

@@ -53,10 +53,16 @@ def metric_diffs(df, metric_type):
         # moving in same direction or opposite direction will not be captured
         # negative means tackler is moving with more momentum/force than ball carrier
     df[f'{metric_type}_diff'] = df[f'{metric_type}_ball_carrier'] - df[f'{metric_type}']
+    # metric sum
+        # I think this is better, see notebook for explanation and write better summary
+    df[f'{metric_type}_sum'] = df[f'{metric_type}_ball_carrier'] + df[f'{metric_type}']
     # x diff and y diff
         # force will be larger than ball carrier force if tackler is moving in opposite direction
     df[f'{metric_type}_x_diff'] = df[f'{metric_type}_x_ball_carrier'] - df[f'{metric_type}_x']
     df[f'{metric_type}_y_diff'] = df[f'{metric_type}_y_ball_carrier'] - df[f'{metric_type}_y']
+
+    df[f'{metric_type}_x_sum'] = df[f'{metric_type}_x_ball_carrier'] + df[f'{metric_type}_x']
+    df[f'{metric_type}_y_sum'] = df[f'{metric_type}_y_ball_carrier'] + df[f'{metric_type}_y']
     return df
 
 def time_to_contact(df):

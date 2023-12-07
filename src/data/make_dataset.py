@@ -8,7 +8,7 @@ import pandas as pd
 from pathlib import Path
 from src.data.tackler_info import (
     simplify_tackles_df, join_ball_carrier_tracking,
-    dist_calc, tackler_distance_frame
+    dist_calc, tackler_distance_frame, contact_behind
 )
 from src.data.physics import (
     calculate_angles, physics_calculations, find_contact_point,
@@ -19,7 +19,8 @@ from src.data.physics import (
 @click.command()
 @click.argument('input_directory', type=click.Path(exists=True))
 @click.argument('output_filepath', type=click.Path())
-def main(input_directory, output_filepath):
+@click.argument('play_type', type=str)
+def main(input_directory, output_filepath, play_type):
     """ Runs data processing scripts to turn raw data from (../raw) into
         cleaned data ready to be analyzed (saved in ../processed).
     """
@@ -65,6 +66,7 @@ def main(input_directory, output_filepath):
     dist_calc(metrics_df, first='', second='_contact', name='tackler_to_contact_dist')
     dist_calc(metrics_df, first='_ball_carrier', second='_contact',
               name='ball_carrier_to_contact_dist')
+    contact_behind(metrics_df)
     time_to_contact(metrics_df)
     contact_force(metrics_df)
 
@@ -93,14 +95,18 @@ def standardize_field(df):
     """
     FIELD_LENGTH = 120
     FIELD_WIDTH = 160 / 3
+    HALF_ROTATION = 180
 
     flipped = df.assign(
         x=FIELD_LENGTH - df.x,
         y=FIELD_WIDTH - df.y,
         
-        o=lambda x: half_rotation(x.o),
-        dir = lambda x: half_rotation(x.dir)
+        o=(df.o + HALF_ROTATION),
+        dir=(df.dir + HALF_ROTATION)
     )
+
+    flipped['o'] = flipped['o'].apply(lambda x: x if x < 360 else x - 360)
+    flipped['dir'] = flipped['dir'].apply(lambda x: x if x < 360 else x - 360)
 
     # Reminder: the where method in pandas goes against intuition and
     # replaces columns for which the condition is False.
@@ -125,7 +131,7 @@ def reduce_tracking_data(df, plays_df, play_type='run'):
     if play_type == 'run':
         run_plays_df = plays_df[plays_df['passResult'].isnull()]
         reduced_tracking_df = run_plays_df[['gameId', 'playId']].merge(tracking_to_tackle_df, on=['gameId', 'playId'])
-    # elif play_type == 'pass':
+    elif play_type == 'pass':
         # before evaluating pass plays, reduce the tracking data to only frames after the catch
         pass_df = tracking_to_tackle_df.copy()
         pass_caught_df = pass_df[pass_df.event == 'pass_outcome_caught']
