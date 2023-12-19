@@ -12,7 +12,7 @@ from src.data.tackler_info import (
 )
 from src.data.physics import (
     calculate_angles, physics_calculations, find_contact_point,
-    metric_diffs, time_to_contact, out_of_phase, contact_force
+    metric_diffs, time_to_contact, out_of_phase, ball_carrier_plane_of_contact
 )
 
 
@@ -31,13 +31,13 @@ def main(input_directory, output_filepath, play_type):
     tracking_df = import_tracking_files(input_directory)
 
     # reduce tracking data to run plays with frames before the tackle
-    reduced_tracking_df = reduce_tracking_data(tracking_df, plays_df, play_type='run')
+    reduced_tracking_df = reduce_tracking_data(tracking_df, plays_df, play_type)
 
     # normalize left/right field direction
     standard_tracking_df = standardize_field(reduced_tracking_df)
 
     # merge weight into tracking dataframe
-    weight_df = standard_tracking_df.merge(players_df[['nflId', 'weight']], on='nflId')
+    weight_df = standard_tracking_df.merge(players_df[['nflId', 'weight', 'position']], on='nflId')
 
     # add force, momentum, and angles
     physics_tracking_df = calculate_angles(weight_df)
@@ -68,7 +68,7 @@ def main(input_directory, output_filepath, play_type):
               name='ball_carrier_to_contact_dist')
     contact_behind(metrics_df)
     time_to_contact(metrics_df)
-    contact_force(metrics_df)
+    ball_carrier_plane_of_contact(metrics_df)
 
     metrics_df.to_csv(output_filepath, index=False)
 

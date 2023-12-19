@@ -2,24 +2,25 @@ from scipy.spatial.distance import euclidean
 import pandas as pd
 
 matching_frame_columns = ['gameId', 'playId', 'frameId']
-player_details_columns = ['nflId', 'displayName', 'club']
+player_details_columns = ['nflId', 'displayName', 'club', 'weight', 'position']
 play_info_columns = ['time', 'event']
 tracking_info_columns = ['x', 'y', 's', 'a', 'dis', 'o', 'dir']
 drop_columns = ['jerseyNumber', 'playDirection']
-angle_columns = ['dir_cos', 'dir_sin', 'dir_tan', 'slope']
+angle_columns = ['dir_cos', 'dir_sin', 'dir_tan', 'slope', 'o_sin']
 physics_columns = ['force', 'force_x', 'force_y', 'momentum', 'momentum_x',
-                   'momentum_y', 'in_phase']
+                   'momentum_y', 'momentum_y_abs', 'in_phase']
 ball_carrier_columns = ['nflId_ball_carrier',
                         'displayName_ball_carrier', 'club_ball_carrier', 
                         'x_ball_carrier', 'y_ball_carrier', 's_ball_carrier',
                         'a_ball_carrier', 'dis_ball_carrier', 'o_ball_carrier',
                         'dir_ball_carrier', 'dir_cos_ball_carrier',
                         'dir_sin_ball_carrier', 'dir_tan_ball_carrier',
-                        'slope_ball_carrier',
+                        'slope_ball_carrier', 'o_sin_ball_carrier',
                         'force_ball_carrier', 'force_x_ball_carrier',
                         'force_y_ball_carrier', 'momentum_ball_carrier',
                         'momentum_x_ball_carrier', 'momentum_y_ball_carrier',
-                        'in_phase_ball_carrier']
+                        'momentum_y_abs_ball_carrier',
+                        'in_phase_ball_carrier', 'weight_ball_carrier']
 
 def simplify_tackles_df(tackles_df):
     # remove plays where the same player makes and misses a tackle
@@ -110,6 +111,11 @@ def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
     return tackles_dist
 
 def contact_behind(df):
+    """_summary_
+
+    Args:
+        df (_type_): _description_
+    """
     df['bc_arrow_dist'] = df.apply(
                         lambda row: euclidean((row['x_ball_carrier'], row['y_ball_carrier']), 
                                             (row['x_ball_carrier'] + row['dir_sin_ball_carrier'], 

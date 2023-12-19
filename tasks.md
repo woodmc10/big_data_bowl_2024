@@ -180,6 +180,50 @@
         * ~~try to figure out difference in momentum_x_add and momentum_x_diff~~
             - The values in the scatter plot look more quadratic than linear. Looking at the values it makes sense why the addition shows a different distribution than the subtraction.
 
+12/8
+- plots
+    * ~~tackler o vs dir~~
+    * ~~tackler x vs y (heat map of field)~~
+Clean up current plots
+- ~~Remove examples that won't make contact~~
+- Create one version that down samples tackles and removes Nones
+Investigation
+- ~~speed vs weight~~
+- mometum x vs momentum y
+    - ~~tackler~~
+    - ~~ball carrier~~
+    - ~~both on same plot~~
+- ~~tackler momentum on ball carrier plane~~
+
+12/15
+- plots
+    * ~~absolute value of momentum_y for all "in the plane" momentum plots~~
+    * ~~match aspect ratio in momentum_x plot (first plot with lowess curves)~~
+    * ~~distribution of distance~~
+        - ~~for running plays almost all distances should be ~1 yard~~
+- data checks
+    * math on the plane of the ball carrier
+        - why is most of the data in the positive x direction? doesn't this indicate the tackler is moving in the same direction as the ball carrier? 
+            * this is what it indicates, but plotting the histogram of the direction of the tackler shows that most defenders have a direction between 0 and 180 degrees (aka are moving in the direction of the scoring end zone)
+- deep thinking
+    * interpret the momentum_x plot (first plot with lowess curves) to understand what the inflection point in the lowess curve indicates
+        - is it more likely for players to miss tackles when they are moving in the opposite direction that the ball carrier is moving?
+- weight interpretation
+    * do the plots indicating speed and weight have an impact on tackles just mean that some positions are less likely to miss tackles?
+        - line backers' primary role is to make tackles so they are better at making tackles?
+    * join the position of the defenders into the dataframes
+        - plot weight v tackles separated by position
+        - summarize if position is a confounding variable
+- pass plays
+    * repeat all of plotting with pass plays
+    * plot distances
+        - expect to see some plays where the distance is ~1 yard and some plays where the distance is smaller
+            * smaller distances would indicate the defender is less than 1 yard from the ball carrier when they catch the ball
+    * repeat plotting but split data into two groups
+        - > 1 yard at catch
+        - < 1 yard at catch
+    
+    
 
 
 

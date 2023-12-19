@@ -19,6 +19,7 @@ def physics_calculations(df, metric_type):
     
     df[f'{metric_type}'] = df[move_type] * df['weight']
     df[f'{metric_type}_y'] = df[f'{metric_type}'] * df['dir_cos']
+    df[f'{metric_type}_y_abs'] = abs(df[f'{metric_type}_y'])
     df[f'{metric_type}_x'] = df[f'{metric_type}'] * df['dir_sin']
     return df
 
@@ -75,10 +76,21 @@ def out_of_phase(df):
     df['in_phase'] = abs(df['dir_sin'] - df['o_sin'])
     return df
 
-def contact_force(df):
-    df['contact_angle'] = np.arctan(abs((df['slope'] - df['slope_ball_carrier'])
-                                        / (1 + df['slope'] * df['slope_ball_carrier'])))
-    df['contact_angle_cos'] = np.cos(df['contact_angle'])
+def ball_carrier_plane_of_contact(df):
+    df['contact_angle'] = df['dir_ball_carrier'] - df['dir']
+
+    df['contact_angle_cos'] = np.cos(np.radians(df['contact_angle']))
     df['contact_angle_force'] = df['force'] * df['contact_angle_cos']
+    df['contact_angle_force_y'] = df['force'] * np.sin(df['contact_angle'])
+    df['contact_angle_force_y_abs'] = abs(df['contact_angle_force_y'])
+    
     df['contact_angle_force_diff'] = df['contact_angle_force'] - df['force_ball_carrier']
+    df['contact_angle_force_sum'] = df['contact_angle_force'] + df['force_ball_carrier']
+    df['contact_angle_momentum'] = df['momentum'] * df['contact_angle_cos']
+    df['contact_angle_momentum_y'] = df['momentum'] * np.sin(np.radians(df['contact_angle']))
+    df['contact_angle_momentum_y_abs'] = abs(df['contact_angle_momentum_y'])
+    
+    df['contact_angle_momentum_diff'] = df['contact_angle_momentum'] - df['momentum_ball_carrier']
+    df['contact_angle_momentum_sum'] = df['contact_angle_momentum'] + df['momentum_ball_carrier']
     return df
+
