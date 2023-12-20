@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pandas as pd
 from pathlib import Path
+import random
+import math
 from src.data.tackler_info import (
     simplify_tackles_df, join_ball_carrier_tracking,
     dist_calc, tackler_distance_frame, contact_behind
@@ -29,37 +31,52 @@ def main(input_directory, output_filepath, play_type):
 
     games_df, plays_df, players_df, tackles_df = import_support_files(input_directory)
     tracking_df = import_tracking_files(input_directory)
+    print('tracking data file created')
 
     # reduce tracking data to run plays with frames before the tackle
+    if play_type == 'pass':
+        plays_list = tracking_df['playId'].unique().to_list()
+        sample_len = math.floor(len(plays_list)/2)
+        plays_sample = random.sample(plays_list, sample_len)
+        tracking_df = tracking_df[tracking_df['playID'].isin(plays_sample)]
+        
     reduced_tracking_df = reduce_tracking_data(tracking_df, plays_df, play_type)
+    print('tracking data reduced')
 
     # normalize left/right field direction
     standard_tracking_df = standardize_field(reduced_tracking_df)
+    print('tracking data standardized')
 
     # merge weight into tracking dataframe
     weight_df = standard_tracking_df.merge(players_df[['nflId', 'weight', 'position']], on='nflId')
+    print('player data merged')
 
     # add force, momentum, and angles
     physics_tracking_df = calculate_angles(weight_df)
     physics_calculations(physics_tracking_df, "force")
     physics_calculations(physics_tracking_df, "momentum")
     out_of_phase(physics_tracking_df)
+    print('physics columns added')
 
     # add ball carrier details to every row
     tackle_simple_df = simplify_tackles_df(tackles_df)
     ball_carrier_join_df = join_ball_carrier_tracking(plays_df, physics_tracking_df)
+    print('ball carrier joined')
 
     # reduce data to only defensive players
     defenders_tracking_df = defenders_only(ball_carrier_join_df)
+    print('reduced to defenders only')
 
     # calculate distances and select single frame
     ball_carrier_dist_df = dist_calc(defenders_tracking_df, name='tackler_to_ball_carrier_dist')
     tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist=1)
         # this distance argument should be a command line argument
+    print('distance calculations completed')
 
     # calculate metrics differences
     metrics_df = metric_diffs(tackler_dist_df, 'force')
     metric_diffs(metrics_df, 'momentum')
+    print('metrics differences calculated')
 
     # calculate contact point and player distance/time
     find_contact_point(metrics_df)
@@ -69,6 +86,7 @@ def main(input_directory, output_filepath, play_type):
     contact_behind(metrics_df)
     time_to_contact(metrics_df)
     ball_carrier_plane_of_contact(metrics_df)
+    print('contact point metrics calculated')
 
     metrics_df.to_csv(output_filepath, index=False)
 
@@ -81,9 +99,17 @@ def import_support_files(input_directory):
 
 def import_tracking_files(input_directory):
     path = Path(input_directory)
-    tracking_df = pd.concat(
-        [pd.read_csv(p) for p in path.rglob('*') if p.match('tracking_week_*.csv')]
-        )
+    parent_path = path.parent
+    full_tracking_file = parent_path / 'interim/full_tracking_df.csv'
+    if full_tracking_file.exists():
+        tracking_df = pd.read_csv(full_tracking_file)
+    else:
+        pass
+        tracking_df = pd.concat(
+            [pd.read_csv(p) for p in path.rglob('*') if p.match('tracking_week_*.csv')]
+            )
+        tracking_df.to_csv(full_tracking_file)
+    
     return tracking_df
 
 def standardize_field(df):
@@ -120,11 +146,10 @@ def half_rotation(angle):
 
 
 def reduce_tracking_data(df, plays_df, play_type='run'):
-    tracking_df = df.copy()
     # exclude frames after the tackle
-    tackle_frame_df = tracking_df[tracking_df['event'] == 'tackle'][['gameId', 'playId', 'frameId']].drop_duplicates(keep='first')
+    tackle_frame_df = df[df['event'] == 'tackle'][['gameId', 'playId', 'frameId']].drop_duplicates(keep='first')
     tackle_frame_df.rename(columns={'frameId': 'tackle_frame'}, inplace=True)
-    temp_tracking_df = tracking_df.merge(tackle_frame_df, on=['gameId', 'playId'])
+    temp_tracking_df = df.merge(tackle_frame_df, on=['gameId', 'playId'])
     tracking_to_tackle_df = temp_tracking_df[temp_tracking_df['tackle_frame'] > temp_tracking_df['frameId']]
 
     # reduce dataframe to selected play type
@@ -132,12 +157,21 @@ def reduce_tracking_data(df, plays_df, play_type='run'):
         run_plays_df = plays_df[plays_df['passResult'].isnull()]
         reduced_tracking_df = run_plays_df[['gameId', 'playId']].merge(tracking_to_tackle_df, on=['gameId', 'playId'])
     elif play_type == 'pass':
+        print('starting pass join')
+        # too much memory is being used, delete dataframes
+        del tackle_frame_df
+        del temp_tracking_df
         # before evaluating pass plays, reduce the tracking data to only frames after the catch
-        pass_df = tracking_to_tackle_df.copy()
-        pass_caught_df = pass_df[pass_df.event == 'pass_outcome_caught']
-        pass_caught_df.rename(columns={'frameId': 'catch_frame'}, inplace=True)
-        temp_tracking_df_pass = pass_df.merge(pass_caught_df, on=['gameId', 'playId'])
+        pass_caught_df = tracking_to_tackle_df[tracking_to_tackle_df.event == 'pass_outcome_caught'][['gameId', 'playId', 'frameId']].rename(columns={'frameId': 'catch_frame'})
+        temp_tracking_df_pass = tracking_to_tackle_df.merge(pass_caught_df, on=['gameId', 'playId'])
         pass_caught_to_tackle_df = temp_tracking_df_pass[temp_tracking_df_pass['catch_frame'] < temp_tracking_df_pass['frameId']]
+
+        print('second del')
+        del pass_caught_df
+        del temp_tracking_df_pass
+
+        import gc
+        gc.collect()
         pass_plays_df = plays_df[plays_df['passResult'] == "C"]
         reduced_tracking_df = pass_plays_df[['gameId', 'playId']].merge(pass_caught_to_tackle_df, on=['gameId', 'playId'])
     else:
