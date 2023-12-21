@@ -35,15 +35,16 @@ def simplify_tackles_df(tackles_df):
         tackles_df_limit["nflId"],
         axis="index"
     )
-
+    
     # melt (unpivot) to make computing distance to ball carrier easier
     tackle_melt = pd.melt(tackle_ids, id_vars=['gameId', 'playId'],
                          value_vars=["tackle", "assist", "forcedFumble", "pff_missedTackle"])
     tackle_melt.rename(columns={'variable': 'event', 'value': 'nflId'}, inplace=True)
-
+    
     # remove all extra rows
-    tackle_simple = tackle_melt.query('nflId != 0')
-    return tackle_simple
+    tackle_melt.drop(tackle_melt[tackle_melt['nflId'] == 0].index, inplace=True)
+    print('finish simplifying tackles')
+    return tackle_melt
 
 def join_ball_carrier_tracking(plays_df, tracking_df):
     # get ball carrier tracking details for each frame

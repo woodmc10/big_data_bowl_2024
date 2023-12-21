@@ -30,16 +30,11 @@ def main(input_directory, output_filepath, play_type):
     logger.info('making final data set from raw data')
 
     games_df, plays_df, players_df, tackles_df = import_support_files(input_directory)
+
     tracking_df = import_tracking_files(input_directory)
     print('tracking data file created')
 
     # reduce tracking data to run plays with frames before the tackle
-    if play_type == 'pass':
-        plays_list = tracking_df['playId'].unique().to_list()
-        sample_len = math.floor(len(plays_list)/2)
-        plays_sample = random.sample(plays_list, sample_len)
-        tracking_df = tracking_df[tracking_df['playID'].isin(plays_sample)]
-        
     reduced_tracking_df = reduce_tracking_data(tracking_df, plays_df, play_type)
     print('tracking data reduced')
 
@@ -59,7 +54,6 @@ def main(input_directory, output_filepath, play_type):
     print('physics columns added')
 
     # add ball carrier details to every row
-    tackle_simple_df = simplify_tackles_df(tackles_df)
     ball_carrier_join_df = join_ball_carrier_tracking(plays_df, physics_tracking_df)
     print('ball carrier joined')
 
@@ -69,8 +63,9 @@ def main(input_directory, output_filepath, play_type):
 
     # calculate distances and select single frame
     ball_carrier_dist_df = dist_calc(defenders_tracking_df, name='tackler_to_ball_carrier_dist')
+    tackle_simple_df = simplify_tackles_df(tackles_df)
     tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist=1)
-        # this distance argument should be a command line argument
+        # TODO: distance argument should be a command line argument
     print('distance calculations completed')
 
     # calculate metrics differences
@@ -157,21 +152,12 @@ def reduce_tracking_data(df, plays_df, play_type='run'):
         run_plays_df = plays_df[plays_df['passResult'].isnull()]
         reduced_tracking_df = run_plays_df[['gameId', 'playId']].merge(tracking_to_tackle_df, on=['gameId', 'playId'])
     elif play_type == 'pass':
-        print('starting pass join')
-        # too much memory is being used, delete dataframes
-        del tackle_frame_df
-        del temp_tracking_df
         # before evaluating pass plays, reduce the tracking data to only frames after the catch
-        pass_caught_df = tracking_to_tackle_df[tracking_to_tackle_df.event == 'pass_outcome_caught'][['gameId', 'playId', 'frameId']].rename(columns={'frameId': 'catch_frame'})
+        pass_caught_df = tracking_to_tackle_df[tracking_to_tackle_df.event == 'pass_outcome_caught'][['gameId', 'playId', 'frameId']].drop_duplicates(keep='first')
+        pass_caught_df.rename(columns={'frameId': 'catch_frame'}, inplace=True)
         temp_tracking_df_pass = tracking_to_tackle_df.merge(pass_caught_df, on=['gameId', 'playId'])
         pass_caught_to_tackle_df = temp_tracking_df_pass[temp_tracking_df_pass['catch_frame'] < temp_tracking_df_pass['frameId']]
 
-        print('second del')
-        del pass_caught_df
-        del temp_tracking_df_pass
-
-        import gc
-        gc.collect()
         pass_plays_df = plays_df[plays_df['passResult'] == "C"]
         reduced_tracking_df = pass_plays_df[['gameId', 'playId']].merge(pass_caught_to_tackle_df, on=['gameId', 'playId'])
     else:
