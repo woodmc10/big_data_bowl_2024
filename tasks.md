@@ -224,6 +224,44 @@ Investigation
         - < 1 yard at catch
     
     
+12/22
+interesting plots to consider
+- hist/violin/box
+    * orientation and direction
+    * momentum (x and y)
+    * momentum y ball carrier
+        - why is the None type so much more narrowly distributed?
+    * contact angle momentum
+        - check math again, is this defender momentum?
+        - tackles have higher momentum in direction of ball carrier? 
+            * trailing tackles?
+    * contact angle
+    * contact angle momentum y
+- scatter
+    * speed
+    * dir
+    * momentum
+- other
+    * orientation vs direction
+        - run compared to pass
+    * momentum x ball carrier vs momentum y abs ball carrier
+        - run
+            * remove ball carriers with negative momentum x and split plots to have ball carrier with positive momentum y on one plot and ball carrier with negative momentum y on second plot (still plot momentum y abs for both)
+        - run compared to pass
+    * momentum x vs momentum x ball carrier lowess
+    * weight of linebackers 
+        - 250lb bin looks like it makes more tackles and misses less tackles
+sanity checks
+- runs
+    * restrict range to 0.8 - 1.2 yards to avoid very small distance outliers
+- both
+    * check <2 yards plots
+    * visualize rotated plays
+        - consider impact on y direction metrics
+- pass
+    * visualize a few plays with small distances
+    * confirm plays are restricted to frames after catch
+
 
 
 
