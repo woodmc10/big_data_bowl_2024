@@ -201,34 +201,38 @@ Investigation
     * ~~match aspect ratio in momentum_x plot (first plot with lowess curves)~~
     * ~~distribution of distance~~
         - ~~for running plays almost all distances should be ~1 yard~~
-- data checks
-    * math on the plane of the ball carrier
-        - why is most of the data in the positive x direction? doesn't this indicate the tackler is moving in the same direction as the ball carrier? 
-            * this is what it indicates, but plotting the histogram of the direction of the tackler shows that most defenders have a direction between 0 and 180 degrees (aka are moving in the direction of the scoring end zone)
-- deep thinking
-    * interpret the momentum_x plot (first plot with lowess curves) to understand what the inflection point in the lowess curve indicates
-        - is it more likely for players to miss tackles when they are moving in the opposite direction that the ball carrier is moving?
-- weight interpretation
-    * do the plots indicating speed and weight have an impact on tackles just mean that some positions are less likely to miss tackles?
-        - line backers' primary role is to make tackles so they are better at making tackles?
-    * join the position of the defenders into the dataframes
-        - plot weight v tackles separated by position
-        - summarize if position is a confounding variable
-- pass plays
-    * repeat all of plotting with pass plays
-    * plot distances
-        - expect to see some plays where the distance is ~1 yard and some plays where the distance is smaller
-            * smaller distances would indicate the defender is less than 1 yard from the ball carrier when they catch the ball
+- ~~data checks~~
+    * ~~math on the plane of the ball carrier~~
+        - ~~why is most of the data in the positive x direction? doesn't this indicate the tackler is moving in the same direction as the ball carrier? ~~
+            * ~~this is what it indicates, but plotting the histogram of the direction of the tackler shows that most defenders have a direction between 0 and 180 degrees (aka are moving in the direction of the scoring end zone)~~
+- ~~deep thinking~~
+    * ~~interpret the momentum_x plot (first plot with lowess curves) to understand what the inflection point in the lowess curve indicates~~
+        - ~~is it more likely for players to miss tackles when they are moving in the opposite direction that the ball carrier is moving?~~
+        - see notebook for drawing and thinking
+- ~~weight interpretation~~
+    * ~~do the plots indicating speed and weight have an impact on tackles just mean that some positions are less likely to miss tackles?~~
+        - ~~line backers' primary role is to make tackles so they are better at making tackles?~~
+    * ~~join the position of the defenders into the dataframes~~
+        - ~~plot weight v tackles separated by position~~
+        - ~~summarize if position is a confounding variable~~
+            * there is still some difference visible with the linebackers
+- ~~pass plays~~
+    * ~~repeat all of plotting with pass plays~~
+    * ~~plot distances~~
+        - ~~expect to see some plays where the distance is ~1 yard and some plays where the distance is smaller~~
+            * ~~smaller distances would indicate the defender is less than 1 yard from the ball carrier when they catch the ball~~
     * repeat plotting but split data into two groups
-        - > 1 yard at catch
-        - < 1 yard at catch
+        - > 1 yard at catch (frameId > 7)
+        - < 1 yard at catch (frameId = 7)
     
     
 12/22
 interesting plots to consider
 - hist/violin/box
+    * speed
     * orientation and direction
     * momentum (x and y)
+        - momentum x is visibly different when comparing running and passing plays (at 2 yards)
     * momentum y ball carrier
         - why is the None type so much more narrowly distributed?
     * contact angle momentum
@@ -236,34 +240,65 @@ interesting plots to consider
         - tackles have higher momentum in direction of ball carrier? 
             * trailing tackles?
     * contact angle
+        - normalize by adding 360 to all negative contact angles?
     * contact angle momentum y
+    * momentum y sum
+    * y contact
+        - fewer tackles are missed in the middle of the field for pass plays, doesn't apply to run plays (2 yards)
 - scatter
     * speed
     * dir
     * momentum
+    * momentum y (more correlated than other plots)
 - other
     * orientation vs direction
         - run compared to pass
     * momentum x ball carrier vs momentum y abs ball carrier
         - run
             * remove ball carriers with negative momentum x and split plots to have ball carrier with positive momentum y on one plot and ball carrier with negative momentum y on second plot (still plot momentum y abs for both)
+                - really think through what it means to need to split this data out. Is there something inherently incorrect about plotting all the data on one plot? Why are most of the defenders moving in the same x direction as the ball carrier? Does this stay consistent in the ball carrier plane plots? Why???? Plot ~20 plays with defender moving in same x direction as ball carrier? (Did the plane get rotated 90 degrees so x direction is really y direction?)
         - run compared to pass
     * momentum x vs momentum x ball carrier lowess
     * weight of linebackers 
         - 250lb bin looks like it makes more tackles and misses less tackles
+            * pull out data where defender is between 240 and 250 lbs and look for an explanation
 sanity checks
 - runs
-    * restrict range to 0.8 - 1.2 yards to avoid very small distance outliers
+    * ~~restrict range to 0.8 - 1.2 yards to avoid very small distance outliers~~
 - both
-    * check <2 yards plots
-    * visualize rotated plays
-        - consider impact on y direction metrics
+    * ~~check <2 yards plots~~
+    * ~~visualize rotated plays~~
+        - ~~consider impact on y direction metrics~~
 - pass
-    * visualize a few plays with small distances
-    * confirm plays are restricted to frames after catch
+    * ~~visualize a few plays with small distances~~
+        - if splitting pass plays for defenders within small distance at time of catch, change code to include frame 6 (pass caught frame) and split dataframe where 'frame == 6' and 'frame != 6'
+    * ~~confirm plays are restricted to frames after catch~~
 
-
-
+What is the story?
+momentum in different planes?
+* plane of the field
+    - x direction
+        * why so many defenders are moving in same x direction as ball carrier
+        * separate analysis for momentum_x vs momentum_x_ball_carrier
+            - plot x momentum when tackler moving in same direction as ball carrier
+            - plot x momentum when tackler moving in opposite direction as ball carrier
+            - what to do when momentum_x_ball_carrier is negative?
+                * plot separately?
+                * remove?
+                * normalize both ball carrier and defender values?
+        * compare momentum_x between run and pass plays
+    - y direction
+        * momentum y violin plots
+            - missed tackles have a much flatter distribution
+                * more tackles are missed (proportionally) when the tackler has lots of momentum in the y direction
+                    - can you say more tackles are missed when **MOST** of the tacklers momentum is moving in the y directions?
+                * same applies to momentum_y_ball_carrier, but the plots look very different (dip at 0 momentum in defenders but not ball carriers) - what does this mean?
+        * momentum_y vs momentum_y_ball_carrier is highly correlated 
+            - use this to lead into contact angle stats (plane of the ball carrier)
+* plane of the ball carrier
+    - contact_angle_momentum_y_abs
+        * proportionally more tackles are missed at higher momentums perpendicular to the direction of the ball carrier
+    - plot contact_angle_momentum vs contact_angle_momentum_y_abs?
 
 # Convos with Zach
 ## 11/2
