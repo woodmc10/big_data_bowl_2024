@@ -293,6 +293,8 @@ momentum in different planes?
                 * more tackles are missed (proportionally) when the tackler has lots of momentum in the y direction
                     - can you say more tackles are missed when **MOST** of the tacklers momentum is moving in the y directions?
                 * same applies to momentum_y_ball_carrier, but the plots look very different (dip at 0 momentum in defenders but not ball carriers) - what does this mean?
+                * what is causing the large y momentum (high momentum or sharp angles)?
+                * absolute momentum y - more definition in tails, help tell story
         * momentum_y vs momentum_y_ball_carrier is highly correlated 
             - use this to lead into contact angle stats (plane of the ball carrier)
 * plane of the ball carrier
