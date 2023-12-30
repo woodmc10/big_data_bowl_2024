@@ -4,6 +4,7 @@ import numpy as np
 
 from PIL import Image
 
+
 colors = {
     'ARI':"#97233F", 
     'ATL':"#A71930", 
@@ -406,7 +407,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
         first_down_markers = [ball_carrier_y - 11.5, ball_carrier_y + 11.5]
         top_number_markers = [ball_carrier_y - 10]*len(np.arange(20,110,10))
         bottom_number_markers = [ball_carrier_y + 10]*len(np.arange(20,110,10))
-        helmet_size = 1
+        helmet_size = 2
     else:
         # TODO: determine second zoom
         pass
@@ -464,7 +465,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
     )
 
     # set values for plane of ball carrier
-    shift_scale = 3
+    shift_scale = 4
     x1 = -shift_scale * np.cos(ball_carrier_dir) + shift_scale * np.sin(ball_carrier_dir) + ball_carrier_x
     x2 = -shift_scale * np.cos(ball_carrier_dir) - shift_scale * np.sin(ball_carrier_dir) + ball_carrier_x
     x3 = shift_scale * np.cos(ball_carrier_dir) + shift_scale * np.sin(ball_carrier_dir) + ball_carrier_x
@@ -529,9 +530,12 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
     # Plot Players
     for team in selected_tracking_df.club.unique():
         plot_df = selected_tracking_df[(selected_tracking_df.club==team)&(selected_tracking_df.frameId==frameId)].copy()
+        if animation_image >= two_player_image:
+            plot_df = plot_df[plot_df.nflId.isin([ball_carrier, defender])]
         if team != "football":
             hover_text_array=[]
             for nflId in plot_df.nflId:
+                
                 selected_player_df = plot_df[plot_df.nflId==nflId]
                 hover_text_array.append("nflId:{}<br>displayName:{}".format(selected_player_df["nflId"].values[0],
                                                                             selected_player_df["displayName"].values[0]))
@@ -543,7 +547,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
                                    hovertext=hover_text_array,
                                    hoverinfo="text"))
 
-            if animation_image > arrow_image - 1:
+            if animation_image >= arrow_image:
                 dir_radians = np.radians(90 - plot_df["dir"])
                 plot_df["x_change"] = plot_df["x"] + (plot_df["s"] * np.cos(dir_radians))
                 plot_df["y_change"] = plot_df["y"] + (plot_df["s"] * np.sin(dir_radians))
@@ -616,7 +620,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
             # Plane of Field
         fig.add_annotation(
             x=ball_carrier_x,
-            y=ball_carrier_y - 8.5,
+            y=ball_carrier_y - 8,
             text='Endzone Momentum',
             showarrow=False,
             font=dict(
@@ -628,7 +632,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
         )
 
         fig.add_annotation(
-            x=ball_carrier_x - 8.5,
+            x=ball_carrier_x - 8,
             y=ball_carrier_y,
             text='Sideline Momentum',
             textangle=-90,
@@ -642,10 +646,10 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
         )
     
     if animation_image >= plane_of_ball_carrier_image:
-            # Plane of Ball Carrier
+    # Plane of Ball Carrier Axes Labels
         fig.add_annotation(
-            x=(x3 - x1)/2 + x1,
-            y=(y3 - y1)/2 + y1 - 0.5,
+            x=(x3 - x1)/3 + x1,
+            y=(y3 - y1)/3 + y1 - 1,
             text='Parallel Momentum',
             showarrow=False,
             font=dict(
@@ -654,11 +658,11 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
                 color="Red"
                 ),
             align="center",
-            textangle=-1 * ball_carrier_dir_deg
+            textangle=-ball_carrier_dir_deg - 1
         )
 
         fig.add_annotation(
-            x=(x2 - x1)/2 + x1 - 0.5,
+            x=(x2 - x1)/2 + x1 - 1,
             y=(y2 - y1)/2 + y1,
             text='Perpendicular Momentum',
             showarrow=False,
@@ -668,7 +672,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
                 color="Red"
                 ),
             align="center",
-            textangle=270 - ball_carrier_dir_deg
+            textangle=271 - ball_carrier_dir_deg
         )
 
     if animation_image >= two_player_image:
@@ -705,3 +709,4 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
 
 # add sideline numbers to zoomed image
 # parallel and perpendicular momentum
+
