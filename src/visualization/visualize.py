@@ -2,6 +2,8 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 
+from PIL import Image
+
 colors = {
     'ARI':"#97233F", 
     'ATL':"#A71930", 
@@ -311,3 +313,395 @@ def plot_line(slope, point):
     except TypeError as e:
         # Log the error
         print(f"Error: {e}")
+
+
+def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defender, animation_image):
+    """
+    Display an animation of the selected play.
+
+    Parameters
+    ----------
+    tracking_df: pandas dataframe
+        dataframe of tracking information that contains the given gameId and playId
+    play_df: pandas dataframe
+        dataframe containing play level information from each game
+    players: pandas dataframe
+        dataframe containing NFL player level information
+    gameId: int
+        numeric identifier of an NFL game
+    playId: int
+        numeric identifier of a play
+    frameId: int
+        numeric identifier of a frame
+    defender: int or float
+        numeric identifier of primary defender for the frame
+    animation_image: int
+        numeric identifier of the animation image order for building explanation animation
+    arrows: bool
+        if True plot arrows for players directions
+    """
+    #TODO: assert playId is present for given gameId
+    selected_play_df = play_df[(play_df.playId==playId)&(play_df.gameId==gameId)].copy()
+    
+    tracking_players_df = pd.merge(tracking_df,players,how="left",on = "nflId", suffixes=[None, '_y'])
+    
+    selected_tracking_df = tracking_players_df[(tracking_players_df.playId==playId)&
+                                                (tracking_players_df.gameId==gameId)].copy()
+
+
+    # get play General information 
+    line_of_scrimmage = selected_play_df.absoluteYardlineNumber.values[0]
+    first_down_marker = line_of_scrimmage + selected_play_df.yardsToGo.values[0]
+    down = selected_play_df.down.values[0]
+    ball_carrier = selected_play_df.ballCarrierId.values[0]
+
+    ball_carrier_df = selected_tracking_df[(selected_tracking_df.frameId == frameId) &
+                                           (selected_tracking_df.nflId == ball_carrier)]
+
+    ball_carrier_x = ball_carrier_df['x'].values[0]
+    ball_carrier_y = ball_carrier_df['y'].values[0]
+    # transform ball carrier direction into counter clockwise from x-axis
+    ball_carrier_dir_deg = 90 - ball_carrier_df['dir'].values[0]
+    ball_carrier_dir = np.radians(ball_carrier_dir_deg)
+
+    defender_df = selected_tracking_df[(selected_tracking_df.frameId == frameId) &
+                                       (selected_tracking_df.nflId == defender)]
+
+    defender_x = defender_df['x'].values[0]
+    defender_y = defender_df['y'].values[0]
+    
+    """
+    Frames
+    1 - all players
+    2 - ball carrier and defender only
+    3 - add arrows
+    4 - zoom
+    5 - add plane of field
+    6 - add plane of ball carrier
+    7 - zoom again
+    8 - rotate
+    9 - show decomposed momentum of defender
+    """
+    two_player_image = 2
+    arrow_image = 3
+    first_zoom_image = 4
+    plane_of_field_image = 5
+    plane_of_ball_carrier_image = 6
+    second_zoom_image = 7
+    rotate_image = 8
+    decompose_momentum_image = 9
+
+    # Set Animation Frame Values for Zooming
+    if animation_image < first_zoom_image:
+        # create a square at full size
+        layout_x_range = [ball_carrier_x - 53.3/2, ball_carrier_x + 53.3/2]
+        layout_y_range = [0, 53.3]
+        first_down_markers = [0, 53.3]
+        top_number_markers = [5]*len(np.arange(20,110,10))
+        bottom_number_markers = [53.3-5]*len(np.arange(20,110,10))
+        helmet_size = 2
+    elif animation_image < second_zoom_image:
+        layout_x_range = [ball_carrier_x - 12, ball_carrier_x + 12]
+        layout_y_range = [ball_carrier_y - 12, ball_carrier_y + 12]
+        first_down_markers = [ball_carrier_y - 11.5, ball_carrier_y + 11.5]
+        top_number_markers = [ball_carrier_y - 10]*len(np.arange(20,110,10))
+        bottom_number_markers = [ball_carrier_y + 10]*len(np.arange(20,110,10))
+        helmet_size = 1
+    else:
+        # TODO: determine second zoom
+        pass
+    
+    frames = []
+    data = []
+    # Add Numbers to Field 
+    data.append(
+        go.Scatter(
+            x=np.arange(20,110,10), 
+            y=top_number_markers,
+            mode='text',
+            text=list(map(str,list(np.arange(20, 61, 10)-10)+list(np.arange(40, 9, -10)))),
+            textfont_size = 30,
+            textfont_family = "Courier New, monospace",
+            textfont_color = "#ffffff",
+            showlegend=False,
+            hoverinfo='none'
+        )
+    )
+    data.append(
+        go.Scatter(
+            x=np.arange(20,110,10), 
+            y=bottom_number_markers,
+            mode='text',
+            text=list(map(str,list(np.arange(20, 61, 10)-10)+list(np.arange(40, 9, -10)))),
+            textfont_size = 30,
+            textfont_family = "Courier New, monospace",
+            textfont_color = "#ffffff",
+            showlegend=False,
+            hoverinfo='none'
+        )
+    )
+    # Add line of scrimage 
+    data.append(
+        go.Scatter(
+            x=[line_of_scrimmage,line_of_scrimmage], 
+            y=[0,53.5],
+            line_dash='dash',
+            line_color='black',
+            showlegend=False,
+            hoverinfo='none'
+        )
+    )
+    # Add First down line 
+    data.append(
+        go.Scatter(
+            x=[first_down_marker,first_down_marker], 
+            y=[0,53.5],
+            line_dash='dash',
+            line_color='yellow',
+            showlegend=False,
+            hoverinfo='none'
+        )
+    )
+
+    # set values for plane of ball carrier
+    shift_scale = 3
+    x1 = -shift_scale * np.cos(ball_carrier_dir) + shift_scale * np.sin(ball_carrier_dir) + ball_carrier_x
+    x2 = -shift_scale * np.cos(ball_carrier_dir) - shift_scale * np.sin(ball_carrier_dir) + ball_carrier_x
+    x3 = shift_scale * np.cos(ball_carrier_dir) + shift_scale * np.sin(ball_carrier_dir) + ball_carrier_x
+
+    y1 = -shift_scale * np.sin(ball_carrier_dir) - shift_scale * np.cos(ball_carrier_dir) + ball_carrier_y
+    y2 = -shift_scale * np.sin(ball_carrier_dir) + shift_scale * np.cos(ball_carrier_dir) + ball_carrier_y
+    y3 = shift_scale * np.sin(ball_carrier_dir) - shift_scale * np.cos(ball_carrier_dir) + ball_carrier_y
+
+
+    if animation_image >= plane_of_field_image:
+        # Add Field of Play Square
+        print(animation_image)
+        data.append(
+            go.Scatter(
+                x=[ball_carrier_x - 7, ball_carrier_x - 7],
+                y=[ball_carrier_y - 7, ball_carrier_y + 7],
+                # line_dash='dot',
+                line_color='white',
+                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                showlegend=False,
+                hoverinfo='none',
+                text=['Endzone Momentum', None]
+            )
+        )
+        data.append(
+            go.Scatter(
+                x=[ball_carrier_x - 7, ball_carrier_x + 7], 
+                y=[ball_carrier_y - 7, ball_carrier_y - 7],
+                # line_dash='dot',
+                line_color='white',
+                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                showlegend=False,
+                hoverinfo='none'
+            )
+        )
+
+    if animation_image >= plane_of_ball_carrier_image:
+        # Add Plane of Ball Carrier Square
+        data.append(
+            go.Scatter(
+                x=[x1, x2], 
+                y=[y1, y2],
+                line_dash='dot',
+                line_color='red',
+                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                showlegend=False,
+                hoverinfo='none'
+            )
+        )
+        data.append(
+            go.Scatter(
+                x=[x1, x3], 
+                y=[y1, y3],
+                line_dash='dot',
+                line_color='red',
+                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                showlegend=False,
+                hoverinfo='none'
+            )
+        )
+
+    # Plot Players
+    for team in selected_tracking_df.club.unique():
+        plot_df = selected_tracking_df[(selected_tracking_df.club==team)&(selected_tracking_df.frameId==frameId)].copy()
+        if team != "football":
+            hover_text_array=[]
+            for nflId in plot_df.nflId:
+                selected_player_df = plot_df[plot_df.nflId==nflId]
+                hover_text_array.append("nflId:{}<br>displayName:{}".format(selected_player_df["nflId"].values[0],
+                                                                            selected_player_df["displayName"].values[0]))
+            data.append(go.Scatter(x=plot_df["x"], 
+                                   y=plot_df["y"],
+                                   mode='markers',
+                                   marker_color=colors[team],
+                                   name=team,
+                                   hovertext=hover_text_array,
+                                   hoverinfo="text"))
+
+            if animation_image > arrow_image - 1:
+                dir_radians = np.radians(90 - plot_df["dir"])
+                plot_df["x_change"] = plot_df["x"] + (plot_df["s"] * np.cos(dir_radians))
+                plot_df["y_change"] = plot_df["y"] + (plot_df["s"] * np.sin(dir_radians))
+                
+                x_diffs = plot_df[["x", "x_change"]].values.tolist()
+                y_diffs = plot_df[["y", "y_change"]].values.tolist()
+                
+                for index, _ in enumerate(x_diffs):
+                    data.append(go.Scatter(x=x_diffs[index], 
+                                            y=y_diffs[index],
+                                            marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                                            showlegend=False,
+                                            line_color=colors[team],
+                                            hoverinfo='none'
+                                            ))
+        else:
+            data.append(go.Scatter(x=plot_df["x"], 
+                                   y=plot_df["y"],
+                                   mode='markers',
+                                   marker_color=colors[team],
+                                   name=team,
+                                   hoverinfo='none'))
+    
+    frames.append(go.Frame(data=data, name=str(frameId)))
+
+    
+    scale=10
+    layout = go.Layout(
+        autosize=False,
+        width=60*scale,
+        height=60*scale,
+        xaxis=dict(range=layout_x_range, autorange=False, tickmode='array',tickvals=np.arange(10, 111, 5).tolist(),showticklabels=False),
+        yaxis=dict(range=layout_y_range, autorange=False,showgrid=False,showticklabels=False),
+
+        plot_bgcolor='#00B140',
+        # Create title and add play description at the bottom of the chart for better visual appeal
+        # title=f"GameId: {gameId}, PlayId: {playId}<br>{gameClock} {quarter}Q"+"<br>"*19+f"{playDescription}",
+        # updatemenus=updatemenus_dict,
+        # sliders = [sliders_dict]
+        showlegend=False
+    )
+
+    fig = go.Figure(
+        data=frames[0]["data"],
+        layout= layout,
+        frames=frames[1:]
+    )
+    # Create First Down Markers 
+    for y_val in first_down_markers:
+        fig.add_annotation(
+                x=line_of_scrimmage,
+                y=y_val,
+                text=str(down),
+                showarrow=False,
+                font=dict(
+                    family="Arial Black",
+                    size=14,
+                    color="#ff7f0e"
+                    ),
+                align="center",
+                bordercolor="black",
+                borderwidth=0,
+                borderpad=2,
+                bgcolor="black",
+                opacity=1
+                )
+    
+    if animation_image >= plane_of_field_image:
+        # Add Axes Annotations
+            # Plane of Field
+        fig.add_annotation(
+            x=ball_carrier_x,
+            y=ball_carrier_y - 8.5,
+            text='Endzone Momentum',
+            showarrow=False,
+            font=dict(
+                family="Droid Sans",
+                size=20,
+                color="white"
+                ),
+            align="center"
+        )
+
+        fig.add_annotation(
+            x=ball_carrier_x - 8.5,
+            y=ball_carrier_y,
+            text='Sideline Momentum',
+            textangle=-90,
+            showarrow=False,
+            font=dict(
+                family="Droid Sans",
+                size=20,
+                color="white"
+                ),
+            align="center"
+        )
+    
+    if animation_image >= plane_of_ball_carrier_image:
+            # Plane of Ball Carrier
+        fig.add_annotation(
+            x=(x3 - x1)/2 + x1,
+            y=(y3 - y1)/2 + y1 - 0.5,
+            text='Parallel Momentum',
+            showarrow=False,
+            font=dict(
+                family="Droid Sans",
+                size=10,
+                color="Red"
+                ),
+            align="center",
+            textangle=-1 * ball_carrier_dir_deg
+        )
+
+        fig.add_annotation(
+            x=(x2 - x1)/2 + x1 - 0.5,
+            y=(y2 - y1)/2 + y1,
+            text='Perpendicular Momentum',
+            showarrow=False,
+            font=dict(
+                family="Droid Sans",
+                size=10,
+                color="Red"
+                ),
+            align="center",
+            textangle=270 - ball_carrier_dir_deg
+        )
+
+    if animation_image >= two_player_image:
+        # Add ball and helmet icon to indicate ball carrier and tackler
+        fig.add_layout_image(
+            dict(
+                source=Image.open("../notebooks/football.png"),
+                xref='x',
+                yref='y',
+                xanchor='center',
+                yanchor='middle',
+                sizex=0.8*helmet_size,
+                sizey=0.8*helmet_size,
+                x=ball_carrier_x,
+                y=ball_carrier_y
+            )
+        )
+
+        fig.add_layout_image(
+            dict(
+                source=Image.open("../notebooks/helmet.png"),
+                xref='x',
+                yref='y',
+                xanchor='center',
+                yanchor='middle',
+                sizex=helmet_size,
+                sizey=helmet_size,
+                x=defender_x,
+                y=defender_y
+            )
+        )
+    
+    return fig
+
+# add sideline numbers to zoomed image
+# parallel and perpendicular momentum
