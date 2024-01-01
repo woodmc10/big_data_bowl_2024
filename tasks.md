@@ -302,6 +302,33 @@ momentum in different planes?
         * proportionally more tackles are missed at higher momentums perpendicular to the direction of the ball carrier
     - plot contact_angle_momentum vs contact_angle_momentum_y_abs?
 
+
+12/31
+* ~~Logistic Regression~~
+    - ~~standardize~~
+    - ~~confusion matrix~~
+    - ~~metrics~~
+* Matching
+    - match on tacking data
+        * momentum differences
+        * plane momentum differences
+    - match on ball carrier momentum data
+        * plane of field differences
+        * plane of ball carrier differences
+* Writing
+    - intro
+    - data
+    - plane of ball carrier
+    - improve current paragraphs
+* Improvements
+    - plane of ball carrier gif
+    - new plots
+        * single player
+        * team
+* Other possible investigations
+    - remove all tackles with an assist instead of treating assists as tackles
+
+
 # Convos with Zach
 ## 11/2
 Pressure Probability Notebook:

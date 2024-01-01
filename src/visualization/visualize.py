@@ -371,6 +371,10 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
     defender_x = defender_df['x'].values[0]
     defender_y = defender_df['y'].values[0]
     
+    # contact angle = dir ball carrier - dir defender
+    contact_angle = ball_carrier_df['dir'].values[0] - defender_df['dir'].values[0]
+    contact_angle_rad = np.radians(contact_angle)
+
     """
     Frames
     1 - all players
@@ -378,19 +382,26 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
     3 - add arrows
     4 - zoom
     5 - add plane of field
-    6 - add plane of ball carrier
-    7 - zoom again
-    8 - rotate
-    9 - show decomposed momentum of defender
+    6 - reduce the visual to just the ball carrier
+    7 - how the decomposed momentum in the sideline and endzone directions
+    8 - return to frame 5
+    9 - add plane of ball carrier
+    10 - zoom again
+    11 - rotate
+    12 - reduce to only the defender
+    13 - show decomposed momentum of defender
     """
     two_player_image = 2
     arrow_image = 3
     first_zoom_image = 4
     plane_of_field_image = 5
-    plane_of_ball_carrier_image = 6
-    second_zoom_image = 7
-    rotate_image = 8
-    decompose_momentum_image = 9
+    field_decompose_image = 7
+    plane_of_ball_carrier_image = 9
+    second_zoom_image = 10
+    rotate_image = 11
+    bc_decompose_image = 13
+    drop_defender_images = [6, 7]
+    drop_ball_carrier_images = [12, 13]
 
     # Set Animation Frame Values for Zooming
     if animation_image < first_zoom_image:
@@ -401,6 +412,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
         top_number_markers = [5]*len(np.arange(20,110,10))
         bottom_number_markers = [53.3-5]*len(np.arange(20,110,10))
         helmet_size = 2
+        ball_carrier_plane_annotation_size = 10
     elif animation_image < second_zoom_image:
         layout_x_range = [ball_carrier_x - 12, ball_carrier_x + 12]
         layout_y_range = [ball_carrier_y - 12, ball_carrier_y + 12]
@@ -408,8 +420,15 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
         top_number_markers = [ball_carrier_y - 10]*len(np.arange(20,110,10))
         bottom_number_markers = [ball_carrier_y + 10]*len(np.arange(20,110,10))
         helmet_size = 2
+        ball_carrier_plane_annotation_size = 10
     else:
-        # TODO: determine second zoom
+        layout_x_range = [ball_carrier_x - 6.8, ball_carrier_x + 6.8]
+        layout_y_range = [ball_carrier_y - 6.8, ball_carrier_y + 6.8]
+        first_down_markers = [ball_carrier_y - 6.5, ball_carrier_y + 6.5]
+        top_number_markers = [ball_carrier_y - 6]*len(np.arange(20,110,10))
+        bottom_number_markers = [ball_carrier_y + 6]*len(np.arange(20,110,10))
+        helmet_size = 1.25
+        ball_carrier_plane_annotation_size = 20
         pass
     
     frames = []
@@ -532,6 +551,13 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
         plot_df = selected_tracking_df[(selected_tracking_df.club==team)&(selected_tracking_df.frameId==frameId)].copy()
         if animation_image >= two_player_image:
             plot_df = plot_df[plot_df.nflId.isin([ball_carrier, defender])]
+        if animation_image in drop_defender_images:
+            plot_df = plot_df[plot_df.nflId == ball_carrier]
+        elif animation_image in drop_ball_carrier_images:
+            plot_df = plot_df[plot_df.nflId == defender]
+        
+        if len(plot_df) == 0:
+            continue
         if team != "football":
             hover_text_array=[]
             for nflId in plot_df.nflId:
@@ -563,6 +589,80 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
                                             line_color=colors[team],
                                             hoverinfo='none'
                                             ))
+
+                # decompose momentum in plane of field
+                x_endzone = plot_df[['x', 'x_change']].values.tolist()
+                y_endzone = plot_df[['y', 'y']].values.tolist()
+                x_sideline = plot_df[['x', 'x']].values.tolist()
+                y_sideline = plot_df[['y', 'y_change']].values.tolist()
+
+                if animation_image == field_decompose_image:
+                    for index, _ in enumerate(x_endzone):
+                        data.append(go.Scatter(x=x_endzone[index], 
+                                                y=y_endzone[index],
+                                                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                                                showlegend=False,
+                                                line_color='white',
+                                                hoverinfo='none'
+                                                ))
+                        data.append(go.Scatter(x=x_sideline[index], 
+                                                y=y_sideline[index],
+                                                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                                                showlegend=False,
+                                                line_color='white',
+                                                hoverinfo='none'
+                                                ))
+                        
+                # decompose momentum in plane of ball carrier
+                        
+                plot_df["x_change_bc"] = plot_df["x"] + (plot_df["s"] * np.cos(contact_angle_rad)) 
+                plot_df["y_change_bc"] = plot_df["y"] + (plot_df["s"] * np.sin(contact_angle_rad))
+
+                plot_df['parallel_point'] = plot_df.apply(lambda x: rotate_point(x['x'],
+                                                                                 x['y'],
+                                                                                 x['x_change_bc'],
+                                                                                 x['y'],
+                                                                                 ball_carrier_dir),
+                                                          axis=1)
+                plot_df['perpendicular_point'] = plot_df.apply(lambda x: rotate_point(x['x'],
+                                                                                      x['y'],
+                                                                                      x['x'],
+                                                                                      x['y_change_bc'],
+                                                                                      ball_carrier_dir),
+                                                               axis=1)
+                
+                plot_df[['x_parallel_point', 'y_parallel_point']] = pd.DataFrame(
+                    plot_df['parallel_point'].tolist(), index=plot_df.index
+                    )
+                plot_df[['x_perpendicular_point', 'y_perpendicular_point']] = pd.DataFrame(
+                    plot_df['perpendicular_point'].tolist(), index=plot_df.index
+                    )
+
+                x_parallel = plot_df[['x', 'x_parallel_point']].values.tolist()
+                y_parallel = plot_df[['y', 'y_parallel_point']].values.tolist()
+                x_perpendicular = plot_df[['x', 'x_perpendicular_point']].values.tolist()
+                y_perpendicular = plot_df[['y', 'y_perpendicular_point']].values.tolist()
+
+
+                if animation_image == bc_decompose_image:
+                    #TODO: make dotted line
+                    for index, _ in enumerate(x_endzone):
+                        data.append(go.Scatter(x=x_parallel[index], 
+                                                y=y_parallel[index],
+                                                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                                                showlegend=False,
+                                                line_dash='dot',
+                                                line_color='red',
+                                                hoverinfo='none'
+                                                ))
+                        data.append(go.Scatter(x=x_perpendicular[index], 
+                                                y=y_perpendicular[index],
+                                                marker=dict(size=10,symbol= "arrow-bar-up", angleref="previous"),
+                                                showlegend=False,
+                                                line_dash='dot',
+                                                line_color='red',
+                                                hoverinfo='none'
+                                                ))
         else:
             data.append(go.Scatter(x=plot_df["x"], 
                                    y=plot_df["y"],
@@ -654,7 +754,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
             showarrow=False,
             font=dict(
                 family="Droid Sans",
-                size=10,
+                size=ball_carrier_plane_annotation_size,
                 color="Red"
                 ),
             align="center",
@@ -668,7 +768,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
             showarrow=False,
             font=dict(
                 family="Droid Sans",
-                size=10,
+                size=ball_carrier_plane_annotation_size,
                 color="Red"
                 ),
             align="center",
@@ -676,37 +776,55 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
         )
 
     if animation_image >= two_player_image:
-        # Add ball and helmet icon to indicate ball carrier and tackler
-        fig.add_layout_image(
-            dict(
-                source=Image.open("../notebooks/football.png"),
-                xref='x',
-                yref='y',
-                xanchor='center',
-                yanchor='middle',
-                sizex=0.8*helmet_size,
-                sizey=0.8*helmet_size,
-                x=ball_carrier_x,
-                y=ball_carrier_y
+    # Add ball and helmet icon to indicate ball carrier and tackler
+        if animation_image not in drop_ball_carrier_images:
+            fig.add_layout_image(
+                dict(
+                    source=Image.open("../notebooks/football.png"),
+                    xref='x',
+                    yref='y',
+                    xanchor='center',
+                    yanchor='middle',
+                    sizex=0.8*helmet_size,
+                    sizey=0.8*helmet_size,
+                    x=ball_carrier_x,
+                    y=ball_carrier_y
+                )
             )
-        )
 
-        fig.add_layout_image(
-            dict(
-                source=Image.open("../notebooks/helmet.png"),
-                xref='x',
-                yref='y',
-                xanchor='center',
-                yanchor='middle',
-                sizex=helmet_size,
-                sizey=helmet_size,
-                x=defender_x,
-                y=defender_y
+        if animation_image not in drop_defender_images:
+            fig.add_layout_image(
+                dict(
+                    source=Image.open("../notebooks/helmet.png"),
+                    xref='x',
+                    yref='y',
+                    xanchor='center',
+                    yanchor='middle',
+                    sizex=helmet_size,
+                    sizey=helmet_size,
+                    x=defender_x,
+                    y=defender_y
+                )
             )
-        )
     
     return fig
 
 # add sideline numbers to zoomed image
 # parallel and perpendicular momentum
 
+def rotate_point(h, k, x, y, angle):
+    """_summary_
+
+    Args:
+        h, k: 
+            anchor to set rotation
+        x, y: 
+            point to rotate around anchor
+        angle (radians): 
+            angle indicating amount of roation (ball_carrier_dir)
+    """
+
+    x1 = (x - h) * np.cos(angle) - (y - k) * np.sin(angle) + h
+    y1 = (x - h) * np.sin(angle) + (y - k) * np.cos(angle) + k
+
+    return (x1, y1)

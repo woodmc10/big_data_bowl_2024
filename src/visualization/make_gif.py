@@ -66,34 +66,44 @@ def clean_data(metrics_df):
 
 if __name__ == "__main__":
 
-    # Replicate Notebook Setup
-    tracking_df = pd.read_csv('../data/interim/full_tracking_df.csv')
+    # # Replicate Notebook Setup
+    # tracking_df = pd.read_csv('../data/interim/full_tracking_df.csv')
     plays_df = pd.read_csv('../data/raw/plays.csv')
     players_df = pd.read_csv('../data/raw/players.csv')
-    tackler_df = pd.read_csv('../data/raw/tackles.csv')
+    # tackler_df = pd.read_csv('../data/raw/tackles.csv')
 
-    run_metrics_df = pd.read_csv('../data/processed/run_plays_12-22_about2yards.csv')
-    run_metrics_df = clean_data(run_metrics_df)
-    sampled_df_2 = run_metrics_df.groupby('event').apply(lambda x: x.sample(n=629, random_state=12))
-    sampled_df_2 = sampled_df_2[sampled_df_2['event'] != 'None']
+    # run_metrics_df = pd.read_csv('../data/processed/run_plays_12-22_about2yards.csv')
+    # run_metrics_df = clean_data(run_metrics_df)
+    # sampled_df_2 = run_metrics_df.groupby('event').apply(lambda x: x.sample(n=629, random_state=12))
+    # sampled_df_2 = sampled_df_2[sampled_df_2['event'] != 'None']
 
-    # pick play
-    sampled_row_2 = sampled_df_2.sample(1, random_state=2)
-    playId_2 = sampled_row_2.playId[0]
-    gameId_2 = sampled_row_2.gameId[0]
-    frameId_2 = sampled_row_2.frameId[0]
-    ballCarrierId_2 = sampled_row_2.nflId_ball_carrier[0]
-    defenderId_2 = sampled_row_2.nflId[0]
+    # # pick play
+    # sampled_row_2 = sampled_df_2.sample(1, random_state=2)
+    # playId_2 = sampled_row_2.playId[0] # 3806
+    # gameId_2 = sampled_row_2.gameId[0] # 2022102700
+    # frameId_2 = sampled_row_2.frameId[0] # 26
+    # ballCarrierId_2 = sampled_row_2.nflId_ball_carrier[0] # 47896.0
+    # defenderId_2 = sampled_row_2.nflId[0] # 45063.0
 
-    play_df_2 = tracking_df[(tracking_df['gameId'] == gameId_2) &
-                            (tracking_df['playId'] == playId_2)]
+    # play_df_2 = tracking_df[(tracking_df['gameId'] == gameId_2) &
+    #                         (tracking_df['playId'] == playId_2)]
+    
+    # play_df_2.to_csv('gif_df.csv')
+
+    play_df_2 = pd.read_csv('gif_df.csv')
+
+    playId_2 = 3806
+    gameId_2 = 2022102700
+    frameId_2 = 26
+    ballCarrierId_2 = 47896.0
+    defenderId_2 = 45063.0
 
     two_player_play_df_2 = play_df_2[play_df_2['nflId'].isin([ballCarrierId_2, defenderId_2])]
 
     # breakpoint()
 
-    for i in range(7):
+    for i in range(14):
         get_gif_frame(play_df_2, plays_df, players_df, gameId_2, playId_2, frameId_2, defenderId_2, i)
 
-    gif.create_gif(10000) # generate gif (length in milliseconds)
+    gif.create_gif(30000) # generate gif (length in milliseconds)
 
