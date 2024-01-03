@@ -807,6 +807,42 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
                 )
             )
     
+    # Add extra space for text explanation
+    layout_update = go.Layout(xaxis=dict(domain = [0.0, 0.45]),
+                              xaxis2=dict(domain = [0.55, 1.0]),
+                              width=120*scale)
+    fig.update_layout(layout_update)
+    
+    # Add text
+    fig.add_annotation(
+            x=0.75,
+            y=0.5,
+            text='''
+                    This frame shows an example<br>
+                    of how the momentum is decomposed.<br><br>
+                    The axes for the plane of the field<br>
+                    are shown in white and<br>
+                    the ball carrier is used as<br>
+                    the example to show the parts of<br>
+                    his momentum moving toward the endzone<br>
+                    and toward the sideline.<br><br>
+                    Then the axes for the plane of the<br>
+                    ball carrier are shown in red.<br>
+                    The red dotted lines from the defender<br>
+                    show the parts of his momentum<br>
+                    that are moving parallel and<br>
+                    perpendicular to the ball carrier.''',
+            showarrow=False,
+            font=dict(
+                family="Open Sans",
+                size=16,
+                color="black"
+                ),
+            align="center",
+            xref='paper',
+            yref='paper'
+        )
+    
     return fig
 
 # add sideline numbers to zoomed image
