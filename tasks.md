@@ -304,10 +304,11 @@ momentum in different planes?
 
 
 12/31
-* ~~Logistic Regression~~
+* Logistic Regression
     - ~~standardize~~
     - ~~confusion matrix~~
     - ~~metrics~~
+    - is this useful?
 * Matching
     - match on tacking data
         * momentum differences
@@ -315,18 +316,43 @@ momentum in different planes?
     - match on ball carrier momentum data
         * plane of field differences
         * plane of ball carrier differences
-* Writing
-    - intro
-    - data
-    - plane of ball carrier
-    - improve current paragraphs
+* ~~Writing~~
+    - ~~intro~~
+    - ~~data~~
+    - ~~plane of ball carrier~~
+    - ~~improve current paragraphs~~
 * Improvements
-    - plane of ball carrier gif
+    - plane of ball carrier gif (rotation)
+    - ~~plane comparison plot~~
+        * ~~legend getting cut off, move to center~~
+        * ~~add a reference at 0 degrees (either a 0 or an image)~~
+    - give all plot white background (avoid text not being visible on a dark screen setting)
     - new plots
-        * single player
+        * ~~single player~~
+        * ~~position~~
         * team
 * Other possible investigations
-    - remove all tackles with an assist instead of treating assists as tackles
+    - ~~remove all assists instead of treating assists as tackles~~
+        * ~~even less distinguishing characteristics between missed tackles and tackles when no assists are included~~
+    - plane comparison plot for a ball carrier (McAffery?)
+    - heat map for a ball carrier
+
+1/4
+* ~~Explain why excluding forced fumbles~~
+* Sideline plot
+    - ~~statistical language: marginal distribution shows heavier tails in the missed tackles distributions, indicating that missed tackles happen at the extremes~~
+    - **y-axis label is missing**
+* ~~MORE CONCLUSION~~
+    - ~~all types of momentum matter (raw, plane of the field, plane of the ball carrier)~~
+    - ~~why do we care about the plane of the ball carrier~~
+        * ~~it allows for interpretation of the directional momentum of the defender without needing to visualize both the ball carrier and the defender~~
+        * ~~explain Preston Smith's plot~~
+* Helmet Icons - left plot helmets need to shift right
+* after finishing a solid submission
+    - investigate logistic regression
+    - investigate propensity matching
+    - clean up code
+    - document code
 
 
 # Convos with Zach
