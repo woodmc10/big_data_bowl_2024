@@ -808,14 +808,14 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
             )
     
     # Add extra space for text explanation
-    layout_update = go.Layout(xaxis=dict(domain = [0.0, 0.45]),
-                              xaxis2=dict(domain = [0.55, 1.0]),
-                              width=120*scale)
+    layout_update = go.Layout(xaxis=dict(domain = [0.0, 0.54]),
+                              xaxis2=dict(domain = [0.66, 1.0]),
+                              width=100*scale)
     fig.update_layout(layout_update)
     
     # Add text
     fig.add_annotation(
-            x=0.75,
+            x=0.9,
             y=0.5,
             text='''
                     This frame shows an example<br>
@@ -842,11 +842,9 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
             xref='paper',
             yref='paper'
         )
-    
+    print('test')
     return fig
 
-# add sideline numbers to zoomed image
-# parallel and perpendicular momentum
 
 def rotate_point(h, k, x, y, angle):
     """_summary_
