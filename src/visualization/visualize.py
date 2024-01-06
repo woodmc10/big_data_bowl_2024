@@ -818,18 +818,18 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
             x=0.9,
             y=0.5,
             text='''
-                    This frame shows an example<br>
+                    This gif shows an example<br>
                     of how the momentum is decomposed.<br><br>
                     The axes for the plane of the field<br>
                     are shown in white and<br>
                     the ball carrier is used as<br>
-                    the example to show the parts of<br>
+                    the example to show the components of<br>
                     his momentum moving toward the endzone<br>
                     and toward the sideline.<br><br>
                     Then the axes for the plane of the<br>
                     ball carrier are shown in red.<br>
                     The red dotted lines from the defender<br>
-                    show the parts of his momentum<br>
+                    show the components of his momentum<br>
                     that are moving parallel and<br>
                     perpendicular to the ball carrier.''',
             showarrow=False,

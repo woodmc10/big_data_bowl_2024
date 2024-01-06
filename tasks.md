@@ -339,15 +339,16 @@ momentum in different planes?
 
 1/4
 * ~~Explain why excluding forced fumbles~~
-* Sideline plot
+* ~~Sideline plot~~
     - ~~statistical language: marginal distribution shows heavier tails in the missed tackles distributions, indicating that missed tackles happen at the extremes~~
-    - **y-axis label is missing**
+    - ~~y-axis label is missing~~
 * ~~MORE CONCLUSION~~
     - ~~all types of momentum matter (raw, plane of the field, plane of the ball carrier)~~
     - ~~why do we care about the plane of the ball carrier~~
         * ~~it allows for interpretation of the directional momentum of the defender without needing to visualize both the ball carrier and the defender~~
         * ~~explain Preston Smith's plot~~
-* Helmet Icons - left plot helmets need to shift right
+* ~~Helmet Icons - left plot helmets need to shift right~~
+* ~~Add text to gif images~~
 * after finishing a solid submission
     - investigate logistic regression
     - investigate propensity matching
