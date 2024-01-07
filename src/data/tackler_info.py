@@ -99,7 +99,9 @@ def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
           angle_columns + physics_columns + ball_carrier_columns +['tackler_to_ball_carrier_dist']]
     else:
         #assert dist is numeric
-        ball_carrier_dist_limit_df = ball_carrier_dist_df[ball_carrier_dist_df['tackler_to_ball_carrier_dist'] < dist]
+        ball_carrier_dist_limit_df = ball_carrier_dist_df[(ball_carrier_dist_df['tackler_to_ball_carrier_dist'] < dist + 0.2) & 
+                                                          (ball_carrier_dist_df['tackler_to_ball_carrier_dist'] > dist - 0.2)
+                                                          ]
         ball_carrier_min_dist = ball_carrier_dist_limit_df.loc[
             ball_carrier_dist_limit_df.groupby(["gameId", "playId", "nflId"])["frameId"].idxmin()
         ][matching_frame_columns + player_details_columns + tracking_info_columns +
