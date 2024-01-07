@@ -387,7 +387,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
     8 - return to frame 5
     9 - add plane of ball carrier
     10 - zoom again
-    11 - rotate
+    11 - rotate (I didn't make this one happen)
     12 - reduce to only the defender
     13 - show decomposed momentum of defender
     """
@@ -842,7 +842,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
             xref='paper',
             yref='paper'
         )
-    print('test')
+    
     return fig
 
 

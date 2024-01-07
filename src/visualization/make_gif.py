@@ -101,8 +101,8 @@ if __name__ == "__main__":
     two_player_play_df_2 = play_df_2[play_df_2['nflId'].isin([ballCarrierId_2, defenderId_2])]
 
     # breakpoint()
-
-    for i in range(14):
+    frames = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13]
+    for i in frames:
         get_gif_frame(play_df_2, plays_df, players_df, gameId_2, playId_2, frameId_2, defenderId_2, i)
 
     gif.create_gif(30000) # generate gif (length in milliseconds)
