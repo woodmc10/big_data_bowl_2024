@@ -350,8 +350,6 @@ momentum in different planes?
 * ~~Helmet Icons - left plot helmets need to shift right~~
 * ~~Add text to gif images~~
 * after finishing a solid submission
-    - investigate logistic regression
-    - investigate propensity matching
     - clean up code
     - document code
 
