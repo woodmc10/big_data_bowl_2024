@@ -2,6 +2,15 @@ import pandas as pd
 import numpy as np
 
 def calculate_angles(df):
+    """Add trigonometry calculations for angles in tracking data
+
+    Args:
+        df (pandas dataframe): player tracking dataframe
+
+    Returns:
+        pandas dataframe: same datafame with new columns
+            ('dir_cos', 'dir_sin', 'dir_tan', 'slope', 'o_sin')
+    """
     df['dir_cos'] = np.cos(np.radians(df['dir']))
     df['dir_sin'] = np.sin(np.radians(df['dir']))
     df['dir_tan'] = np.tan(np.radians(df['dir']))
@@ -10,6 +19,16 @@ def calculate_angles(df):
     return df
 
 def physics_calculations(df, metric_type):
+    """Calculate force or momentum and decompose into x and y directional components
+
+    Args:
+        df (pandas dataframe): player tracking dataframe
+        metric_type (str): type of metric for calculations, either 'force' or 'momentum'
+
+    Returns:
+        pandas dataframe: same dataframe with new columns
+            ('{metric}', '{metric}_y', '{metric}_y_abs', '{metric}_x)
+    """
     assert metric_type in ['force', 'momentum']
 
     if metric_type == 'force':
@@ -24,6 +43,18 @@ def physics_calculations(df, metric_type):
     return df
 
 def find_contact_point(df):
+    """ Calculate the projected point of contact for the ball carrier and defender and add
+        point information to the dataframe
+
+    Parameters
+    ----------
+        df (pandas dataframe): player tracking dataframe with ball carrier details merged
+            for each frame
+
+    Returns:
+        pandas dataframe: same dataframe with new columns
+            ('x_contact', 'y_contact', 'contact_y_check')
+    """
     df['x_contact'] = ((df['y'] - (df['slope'] * df['x']) -
                         (df['y_ball_carrier'] - (df['slope_ball_carrier'] *
                                               df['x_ball_carrier']))
@@ -44,6 +75,9 @@ def find_contact_point(df):
                             )
     df['contact_y_check'] = np.where(np.isnan(df['contact_y_check']), df['y'], df['contact_y_check'])
     df['contact_y_check'] = np.where(np.isinf(df['contact_y_check']), df['y'], df['contact_y_check'])
+
+    # TODO: compare ['y_contact'] and ['contact_y_check'] to ensure calculations match
+        # (sanity check)
     # pd.testing.assert_series_equal(df['y_contact'], df['contact_y_check'])
 
     return df

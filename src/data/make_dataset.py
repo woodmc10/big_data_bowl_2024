@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 import click
 import logging
 from pathlib import Path
-# from dotenv import find_dotenv, load_dotenv
 
 import pandas as pd
 from pathlib import Path
@@ -25,6 +23,16 @@ from src.data.physics import (
 def main(input_directory, output_filepath, play_type):
     """ Runs data processing scripts to turn raw data from (../raw) into
         cleaned data ready to be analyzed (saved in ../processed).
+
+    Parameters
+    ----------
+        input_directory (str): path to raw data
+        output_filepath (str): path to save output file
+        play_type (str): type of play to use for dataset, either "run" or "pass"
+    
+    Return
+    ------
+        None, saves output to filepath
     """
     logger = logging.getLogger(__name__)
     logger.info('making final data set from raw data')
@@ -34,7 +42,7 @@ def main(input_directory, output_filepath, play_type):
     tracking_df = import_tracking_files(input_directory)
     print('tracking data file created')
 
-    # reduce tracking data to run plays with frames before the tackle
+    # reduce tracking data to play_type plays with frames before the tackle
     reduced_tracking_df = reduce_tracking_data(tracking_df, plays_df, play_type)
     print('tracking data reduced')
 
@@ -64,7 +72,7 @@ def main(input_directory, output_filepath, play_type):
     # calculate distances and select single frame
     ball_carrier_dist_df = dist_calc(defenders_tracking_df, name='tackler_to_ball_carrier_dist')
     tackle_simple_df = simplify_tackles_df(tackles_df)
-    tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist=1)
+    tackler_dist_df = tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist=2)
         # TODO: distance argument should be a command line argument
     print('distance calculations completed')
 
@@ -86,6 +94,17 @@ def main(input_directory, output_filepath, play_type):
     metrics_df.to_csv(output_filepath, index=False)
 
 def import_support_files(input_directory):
+    """ Import games, plays, players, and tackles files into pandas dataframes
+
+    Parameters
+    ----------
+        input_directory (str): path to raw data
+    
+    Return
+    ------
+        (games_df, plays_df, players_df, tackles_df)
+        tuple of pandas dataframes
+    """
     games_df = pd.read_csv(f'{input_directory}/games.csv')
     plays_df = pd.read_csv(f'{input_directory}/plays.csv')
     players_df = pd.read_csv(f'{input_directory}/players.csv')
@@ -93,9 +112,22 @@ def import_support_files(input_directory):
     return(games_df, plays_df, players_df, tackles_df)
 
 def import_tracking_files(input_directory):
+    """ Loop through all tracking files in import directory and create one tracking dataframe, if
+        dataframe exists import saved file.
+
+    Parameters
+    ----------
+        input_directory (str): path to raw data
+
+    Return
+    ------
+        pandas dataframe: all tracking data from raw data directory
+    """
     path = Path(input_directory)
     parent_path = path.parent
     full_tracking_file = parent_path / 'interim/full_tracking_df.csv'
+    
+    # only build dataset the first time
     if full_tracking_file.exists():
         tracking_df = pd.read_csv(full_tracking_file)
     else:
@@ -108,11 +140,16 @@ def import_tracking_files(input_directory):
     return tracking_df
 
 def standardize_field(df):
-    """
-    Convert coordinates and orientation such that the offensive team is
-    always going to the right.
+    """ Convert coordinates and orientation such that the offensive team is always going to the
+        right.
     
-    Direction is not used and, therefore, not updated.
+    Parameters
+    ----------
+        df (pandas dataframe): tracking dataframe to be standardized
+
+    Return
+    ------
+        pandas dataframe: standardized tracking dataframe
     """
     FIELD_LENGTH = 120
     FIELD_WIDTH = 160 / 3
@@ -134,6 +171,16 @@ def standardize_field(df):
     return df.where(df.playDirection == "right", flipped)
 
 def half_rotation(angle):
+    """Calculates new angle for standardizing direction of plays
+
+    Parameters
+    ----------
+        angle (float): original angle to be rotated
+
+    Return
+    ------
+        float: angle after rotation
+    """
     new_angle = angle + 180
     if new_angle > 360:
         return new_angle - 360
@@ -141,6 +188,25 @@ def half_rotation(angle):
 
 
 def reduce_tracking_data(df, plays_df, play_type='run'):
+    """ Restrict plays to only the selected play type and restrict frames in the play to meet the
+        requirements of that type. Run plays only include frames before the tackle frame, and pass
+        plays only include frames between the frame when the pass was caught and the tackle was
+        made.
+
+    Parameters
+    ----------
+        df (pandas dataframe): dataframe containing player tracking data
+        plays_df (pandas dataframe): dataframe containing play level information for each game
+        play_type (str, optional): play type, either 'run' or 'pass'. Defaults to 'run'.
+
+    Raises
+    ------
+        ValueError: a value error is raise if a value other than 'run' or 'pass' is used for the
+            play_type
+
+    Returns:
+        pandas dataframe: tracking dataframe reduced to the frames that match the criteria
+    """
     # exclude frames after the tackle
     tackle_frame_df = df[df['event'] == 'tackle'][['gameId', 'playId', 'frameId']].drop_duplicates(keep='first')
     tackle_frame_df.rename(columns={'frameId': 'tackle_frame'}, inplace=True)
@@ -161,11 +227,22 @@ def reduce_tracking_data(df, plays_df, play_type='run'):
         pass_plays_df = plays_df[plays_df['passResult'] == "C"]
         reduced_tracking_df = pass_plays_df[['gameId', 'playId']].merge(pass_caught_to_tackle_df, on=['gameId', 'playId'])
     else:
-        raise ValueError("Only run plays supported")
+        raise ValueError("Value must be either run or pass")
 
     return reduced_tracking_df
 
 def defenders_only(tracking_df):
+    """Reduce tracking data to remove offensive players
+
+    Parameters
+    ----------
+        tracking_df (pandas dataframe): dataframe containing player level tracking data that
+            has already been merged with ball carrier tracking data
+
+    Returns
+    -------
+        pandas dataframe: defender tracking data with ball carrier data for every frame
+    """
     df = tracking_df.copy()
     defenders_df = df[df['club'] != df['club_ball_carrier']]
     return defenders_df
