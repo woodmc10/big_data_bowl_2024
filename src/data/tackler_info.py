@@ -23,6 +23,15 @@ ball_carrier_columns = ['nflId_ball_carrier',
                         'in_phase_ball_carrier', 'weight_ball_carrier']
 
 def simplify_tackles_df(tackles_df):
+    """ Refactor the tackles dataframe to remove non-useful plays, and format the dataframe
+        to be more accessible.
+
+    Args:
+        tackles_df (pandas dataframe): tackles dataframe
+
+    Returns:
+        pandas dataframe
+    """
     # remove plays where the same player makes and misses a tackle
     tackles_df['sum'] = tackles_df['tackle'] + tackles_df['assist'] + tackles_df['pff_missedTackle']
     tackles_df_limit = tackles_df[tackles_df['sum'] == 1]
@@ -47,6 +56,16 @@ def simplify_tackles_df(tackles_df):
     return tackle_melt
 
 def join_ball_carrier_tracking(plays_df, tracking_df):
+    """ Add frames for ball carrier tracking details to each frame of the player tracking data
+
+    Args:
+        plays_df (pandas dataframe): dataframe with details for each play in the tracking_df
+        tracking_df (pandas_dataframe): dataframe with player tracking details
+
+    Returns:
+        pandas dataframe: dataframe with player tracking data and ball carrier tracking data
+            in each row
+    """
     # get ball carrier tracking details for each frame
     ball_carrier_tracking_df = plays_df[['gameId', 'playId', 'ballCarrierId']].merge(
                                     tracking_df[matching_frame_columns +
@@ -73,6 +92,15 @@ def join_ball_carrier_tracking(plays_df, tracking_df):
     return ball_carrier_join
 
 def player_dist_to_ball_carrier(ball_carrier_dist):
+    """ Add the distance between player and ball carrier to each row of dataframe
+
+    Args:
+        ball_carrier_dist (pandas dataframe): player tracking dataframe with ball carrier
+            details merged for each frame
+
+    Returns:
+        pandas dataframe: same dataframe with new column 'distance'
+    """
     # calculate distance from each player to ball carrier
     ball_carrier_dist['distance'] = ball_carrier_dist.apply(
                     lambda row: euclidean((row['x'], row['y']), 
@@ -81,6 +109,21 @@ def player_dist_to_ball_carrier(ball_carrier_dist):
     return ball_carrier_dist
 
 def dist_calc(df, first='', second='_ball_carrier', name='distance'):
+    """ Flexible calculation for distance between two points in the tracking dataframe
+
+    Args:
+        df (pandas dataframe): player tracking dataframe with ball carrier details merged
+            for each frame
+        first (str, optional): a subscript to indicate which (x, y) point to find distance from
+            Defaults to ''
+        second (str, optional): a subscript to indicate which (x, y) point to find distance to
+            Defaults to '_ball_carrier'
+        name (str, optional): name for the distance column
+            Defaults to 'distance'
+
+    Returns:
+        pandas dataframe: same dataframe with new column {name}
+    """
     # calculate distance from each player to ball carrier
     df['distance'] = df.apply(
                     lambda row: euclidean((row[f'x{first}'], row[f'y{first}']), 
@@ -90,6 +133,19 @@ def dist_calc(df, first='', second='_ball_carrier', name='distance'):
     return df
 
 def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
+    """ Restrict tracking dataframe to only the rows where the defender is at the minimum
+        distance from teh ball carrier, or the first row within a set range.
+
+    Args:
+        tackle_simple_df (pandas dataframe): tackle dataframe after simplifying structure
+        ball_carrier_dist_df (pandas dataframe): player tracking dataframe with ball carrier
+            details merged for each frame
+        dist (str, optional): "min" or a number for setting defender distance range
+            Defaults to 'min'
+
+    Returns:
+        pandas dataframe: same dataframe with new column {name}
+    """
     #TODO: "tackler_to_ball_carrier_dist" column name is an argument assigned in the 
     # dist_calc function. It is bad practice to hard code it in this function. Fix.
     if dist == 'min':
@@ -114,10 +170,18 @@ def tackler_distance_frame(tackle_simple_df, ball_carrier_dist_df, dist='min'):
     return tackles_dist
 
 def contact_behind(df):
-    """_summary_
+    """ Calculate information about the distance between the defender, ball carrier, and the
+        projected contact point.
 
     Args:
-        df (_type_): _description_
+        df (pandas dataframe): player tracking dataframe with ball carrier details merged
+            for each frame and distances to contact values calculated
+
+    Returns:
+        pandas dataframe: same dataframe with new columns
+            ('bc_arrow_dist', 'contact_bc_arrow_dist', 'behind_ball_carrier',
+             'tackler_arrow_dist', 'contact_t_arrow_dist', 'behind_tackler',
+             'behind_player')
     """
     df['bc_arrow_dist'] = df.apply(
                         lambda row: euclidean((row['x_ball_carrier'], row['y_ball_carrier']), 
@@ -152,6 +216,15 @@ def contact_behind(df):
     df['behind_player'] = df['behind_ball_carrier'] | df['behind_tackler']
 
 def dist_group(row):
+    """ Bin the minimum distance between defenders and ball carriers into set ranges: 0-0.5,
+        0.5-1, 1-2, >2, or unknown.
+
+    Args:
+        row (dataframe row): a row of the tracking dataframe with a numeric column ['min_dist']
+
+    Returns:
+        str: a distance bin
+    """
     dist_range = 'unknown'
     if row.min_dist < 0.5:
         dist_range = '0 - 0.5'

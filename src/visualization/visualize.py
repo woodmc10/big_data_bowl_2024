@@ -847,7 +847,7 @@ def animate_frame(tracking_df, play_df, players, gameId, playId, frameId, defend
 
 
 def rotate_point(h, k, x, y, angle):
-    """_summary_
+    """Rotate a point (x, y) by a set angle around another point (h, k)
 
     Args:
         h, k: 
